@@ -1,0 +1,26 @@
+# Exclude IDE and Editor files
+/.idea/
+*.sublime*
+
+# Rust
+processor/Cargo.lock
+processor/bin/
+processor/target/
+processor/src/messages/
+
+# Node
+**/node_modules
+**/package-lock.json
+**/npm-debug.log
+
+# Webpack
+**/dist
+
+tests/sawtooth_sc_test/protobuf/
+
+/server/config.json
+**/generated_protos.json
+
+/docs/build/
+/docs/source/_autogen/
+/docs/source/cli/output/
