@@ -31,7 +31,7 @@ const {
 const deltas = require('./deltas')
 const config = require('../system/config')
 
-const PREFIX = '3400de'
+const PREFIX = 'a43b46'
 const NULL_BLOCK_ID = '0000000000000000'
 const VALIDATOR_URL = config.VALIDATOR_URL
 const stream = new Stream(VALIDATOR_URL)
