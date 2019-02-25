@@ -30,9 +30,9 @@ const modals = require('../components/modals')
 const api = require('../services/api')
 
 const STORAGE_KEY = 'asset_track.encryptedKey'
-const FAMILY_NAME = 'supply_chain'
-const FAMILY_VERSION = '1.1'
-const NAMESPACE = '3400de'
+const FAMILY_NAME = 'grid_track_and_trace'
+const FAMILY_VERSION = '1.0'
+const NAMESPACE = 'a43b46'
 
 const context = new secp256k1.Secp256k1Context()
 let privateKey = null
