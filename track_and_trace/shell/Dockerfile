@@ -54,7 +54,7 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable bionic universe" >> /etc
 WORKDIR /track_and_trace
 
 # Install NPM dependencies to central location, link to individual components
-COPY bin/splice_json bin/
+COPY shell/splice_json bin/
 COPY asset_client/package.json asset_client/
 COPY fish_client/package.json fish_client/
 COPY server/package.json server/

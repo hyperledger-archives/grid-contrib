@@ -54,7 +54,7 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable xenial universe" >> /etc
 WORKDIR /sawtooth-supply-chain
 
 # Install NPM dependencies to central location, link to individual components
-COPY bin/splice_json bin/
+COPY shell/splice_json bin/
 COPY asset_client/ asset_client/
 COPY fish_client/ fish_client/
 COPY protos/ protos/
