@@ -51,7 +51,7 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable bionic universe" >> /etc
   && rm -rf /var/lib/apt/lists/* \
   && npm install -g prebuild-install
 
-WORKDIR /sawtooth-supply-chain
+WORKDIR /track_and_trace
 
 # Install NPM dependencies to central location, link to individual components
 COPY bin/splice_json bin/
@@ -83,7 +83,5 @@ RUN mkdir /node_deps \
   && ln -s /node_deps/node_modules asset_client/ \
   && ln -s /node_deps/node_modules fish_client/ \
   && ln -s /node_deps/node_modules server/
-
-ENV PATH $PATH:/sawtooth-supply-chain/bin
 
 CMD ["tail", "-f", "/dev/null"]

@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
  && rm -rf /var/lib/apt/lists/* \
  && npm install -g prebuild-install
 
-WORKDIR /sawtooth-supply-chain/ledger_sync
+WORKDIR /track_and_trace/ledger_sync
 
 RUN \
  if [ ! -z $HTTP_PROXY ] && [ -z $http_proxy ]; then \
