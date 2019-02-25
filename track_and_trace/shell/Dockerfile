@@ -13,12 +13,12 @@
 # limitations under the License.
 # ------------------------------------------------------------------------------
 
-FROM hyperledger/sawtooth-shell:nightly
+FROM hyperledger/sawtooth-shell:1.1
 
 # Install Python, Node.js, and Ubuntu dependencies
-RUN echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable bionic universe" >> /etc/apt/sources.list \
-  && (apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 44FC67F19B2466EA \
-  || apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 44FC67F19B2466EA) \
+RUN echo "deb http://repo.sawtooth.me/ubuntu/bumper/stable xenial universe" >> /etc/apt/sources.list \
+  && (apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8AA7AF1F1091A5FD \
+  || apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 8AA7AF1F1091A5FD) \
   && apt-get update \
   && apt-get install -y -q \
     apt-transport-https \

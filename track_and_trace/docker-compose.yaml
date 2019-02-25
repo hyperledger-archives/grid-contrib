@@ -175,7 +175,7 @@ services:
       - 'no_proxy=rest-api,server,eth0,validator,${no_proxy}'
 
   validator:
-    image: hyperledger/sawtooth-validator:1.0
+    image: hyperledger/sawtooth-validator:1.1
     container_name: tnt-validator
     expose:
       - 4004
@@ -197,14 +197,14 @@ services:
       "
 
   settings-tp:
-    image: hyperledger/sawtooth-settings-tp:1.0
+    image: hyperledger/sawtooth-settings-tp:1.1
     container_name: tnt-settings-tp
     depends_on:
       - validator
     entrypoint: settings-tp -vv -C tcp://validator:4004
 
   rest-api:
-    image: hyperledger/sawtooth-rest-api:1.0
+    image: hyperledger/sawtooth-rest-api:1.1
     container_name: tnt-rest-api
     expose:
       - 8008

@@ -105,7 +105,7 @@ services:
       - 28015
 
   validator:
-    image: hyperledger/sawtooth-validator:1.0
+    image: hyperledger/sawtooth-validator:1.1
     container_name: tnt-validator
     expose:
       - 4004
@@ -125,7 +125,7 @@ services:
       "
 
   settings-tp:
-    image: hyperledger/sawtooth-settings-tp:1.0
+    image: hyperledger/sawtooth-settings-tp:1.1
     container_name: tnt-settings-tp
     depends_on:
       - validator
