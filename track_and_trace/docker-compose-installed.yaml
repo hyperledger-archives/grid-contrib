@@ -138,6 +138,20 @@ services:
       - validator
     entrypoint: settings-tp -v -C tcp://validator:4004
 
+  rest-api:
+    image: hyperledger/sawtooth-rest-api:1.1
+    container_name: tnt-rest-api
+    expose:
+      - 8008
+    ports:
+      - '8024:8008'
+    depends_on:
+      - validator
+    entrypoint: |
+      sawtooth-rest-api -vv
+        --connect tcp://validator:4004
+        --bind rest-api:8008
+
   devmode-rust:
     image: hyperledger/sawtooth-devmode-engine-rust:1.1
     container_name: sawtooth-devmode-engine-rust
