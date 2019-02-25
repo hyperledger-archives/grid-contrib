@@ -185,15 +185,22 @@ services:
     entrypoint: |
       bash -c "
         if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
-          sawadm keygen &&
-          sawtooth keygen my_key &&
-          sawset genesis -k /root/.sawtooth/keys/my_key.priv &&
-          sawadm genesis config-genesis.batch
+          sawadm keygen
+          sawset genesis \
+            -k /etc/sawtooth/keys/validator.priv \
+            -o config-genesis.batch && \
+          sawset proposal create \
+            -k /etc/sawtooth/keys/validator.priv \
+            sawtooth.consensus.algorithm.name=Devmode \
+            sawtooth.consensus.algorithm.version=0.1 \
+            -o config.batch && \
+          sawadm genesis config-genesis.batch config.batch
         fi;
         sawtooth-validator -vv \
           --endpoint tcp://validator:8800 \
           --bind component:tcp://eth0:4004 \
-          --bind network:tcp://eth0:8800
+          --bind network:tcp://eth0:8800 \
+          --bind consensus:tcp://eth0:5050 \
       "
 
   settings-tp:
@@ -216,3 +223,12 @@ services:
       sawtooth-rest-api -vv
         --connect tcp://validator:4004
         --bind rest-api:8008
+
+  devmode-rust:
+    image: hyperledger/sawtooth-devmode-engine-rust:1.1
+    container_name: tnt-devmode-engine-rust
+    depends_on:
+      - validator
+    command: |
+        devmode-engine-rust -v --connect tcp://validator:5050
+    stop_signal: SIGKILL
