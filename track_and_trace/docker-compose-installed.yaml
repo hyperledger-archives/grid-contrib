@@ -17,6 +17,43 @@ version: '2.1'
 
 services:
 
+  shell:
+    image: tnt-shell-installed:${ISOLATION_ID}
+    container_name: tnt-shell-installed
+    build:
+      context: .
+      dockerfile: shell/Dockerfile-installed
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    depends_on:
+      - rethink
+      - rest-api
+    environment:
+      - VALIDATOR_URL=tcp://validator:4004
+      - DB_HOST=rethink
+      - SERVER=http://server:3000
+      - 'http_proxy=${http_proxy}'
+      - 'https_proxy=${https_proxy}'
+      - 'no_proxy=rest-api,server,eth0,validator,${no_proxy}'
+    command: |
+      bash -c "
+        cd asset_client/ && npm run build && cd - &&
+        cd fish_client/ && npm run build && cd - &&
+        if [ ! -f /root/.sawtooth/keys/root.priv ]; then
+          sawtooth keygen &&
+          cd server/ &&
+          npm run init &&
+          npm run make-asset &&
+          npm run make-fish &&
+          npm run seed-sample-assets &&
+          npm run seed-sample-fish &&
+          cd -
+        fi;
+        tail -f /dev/null
+      "
+
   processor:
     image: tnt-tp-installed:${ISOLATION_ID}
     container_name: tnt-tp-installed
