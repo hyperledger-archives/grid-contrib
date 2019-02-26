@@ -74,6 +74,9 @@ RUN \
   npm config set https-proxy $https_proxy; \
  fi
 
+RUN if [ -d "asset_client/node_modules" ]; then rm -rf asset_client/node_modules; fi \
+ && if [ -d "fish_client/node_modules" ]; then rm -rf fish_client/node_modules; fi \
+ && if [ -d "server/node_modules" ]; then rm -rf server/node_modules; fi
 
 RUN mkdir /node_deps \
   && bin/splice_json \
