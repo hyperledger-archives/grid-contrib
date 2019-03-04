@@ -18,8 +18,8 @@ version: '2.1'
 services:
 
   shell:
-    image: supply-shell
-    container_name: supply-shell
+    image: tnt-shell
+    container_name: tnt-shell
     build:
       context: .
       dockerfile: shell/Dockerfile
@@ -28,10 +28,10 @@ services:
         - https_proxy
         - no_proxy
     volumes:
-      - .:/sawtooth-supply-chain
-      - /sawtooth-supply-chain/asset_client/node_modules
-      - /sawtooth-supply-chain/fish_client/node_modules
-      - /sawtooth-supply-chain/server/node_modules
+      - .:/track_and_trace
+      - /track_and_trace/asset_client/node_modules
+      - /track_and_trace/fish_client/node_modules
+      - /track_and_trace/server/node_modules
     depends_on:
       - rethink
       - rest-api
@@ -60,10 +60,10 @@ services:
       "
 
   processor:
-    image: supply-tp
-    container_name: supply-tp
+    image: tnt-tp
+    container_name: tnt-tp
     build:
-      context: processor/
+      context: ../../grid/contracts/track_and_trace
       args:
         - http_proxy
         - https_proxy
@@ -73,18 +73,18 @@ services:
       - 'https_proxy=${https_proxy}'
       - 'no_proxy=rest-api,server,eth0,validator,${no_proxy}'
     volumes:
-      - .:/sawtooth-supply-chain
-      - /sawtooth-supply-chain/processor/target
-      - /sawtooth-supply-chain/processor/src/messages
+      - ../../grid/:/grid
+      - /grid/contracts/track_and_trace/target
+      - /grid/contracts/track_and_trace/src/messages
     entrypoint: |
       bash -c "
         cargo build &&
-        supply-chain-tp -v -C tcp://validator:4004
+        grid-track-and-trace-tp -v -C tcp://validator:4004
       "
 
   server:
-    image: supply-server
-    container_name: supply-server
+    image: tnt-server
+    container_name: tnt-server
     build:
       context: .
       dockerfile: server/Dockerfile
@@ -93,8 +93,8 @@ services:
         - https_proxy
         - no_proxy
     volumes:
-      - .:/sawtooth-supply-chain
-      - /sawtooth-supply-chain/server/node_modules
+      - .:/track_and_trace
+      - /track_and_trace/server/node_modules
     expose:
       - 3000
     ports:
@@ -112,8 +112,8 @@ services:
     entrypoint: node index.js
 
   ledger-sync:
-    image: supply-ledger-sync
-    container_name: supply-ledger-sync
+    image: tnt-ledger-sync
+    container_name: tnt-ledger-sync
     build:
       context: .
       dockerfile: ledger_sync/Dockerfile
@@ -122,8 +122,8 @@ services:
         - https_proxy
         - no_proxy
     volumes:
-      - .:/sawtooth-supply-chain
-      - /sawtooth-supply-chain/ledger_sync/node_modules
+      - .:/track_and_trace
+      - /track_and_trace/ledger_sync/node_modules
     depends_on:
       - validator
       - rethink
@@ -135,8 +135,8 @@ services:
       - 'no_proxy=rest-api,server,eth0,validator,${no_proxy}'
 
   asset-client:
-    image: supply-asset-client
-    container_name: supply-asset-client
+    image: tnt-asset-client
+    container_name: tnt-asset-client
     build: ./asset_client
     volumes:
       - ./asset_client/public/:/usr/local/apache2/htdocs/
@@ -148,8 +148,8 @@ services:
       - server
 
   fish-client:
-    image: supply-fish-client
-    container_name: supply-fish-client
+    image: tnt-fish-client
+    container_name: tnt-fish-client
     build: ./fish_client
     volumes:
       - ./fish_client/public/:/usr/local/apache2/htdocs/
@@ -162,7 +162,7 @@ services:
 
   rethink:
     image: rethinkdb
-    container_name: supply-rethink
+    container_name: tnt-rethink
     expose:
       - 8080
       - 28015
@@ -175,8 +175,8 @@ services:
       - 'no_proxy=rest-api,server,eth0,validator,${no_proxy}'
 
   validator:
-    image: hyperledger/sawtooth-validator:1.0
-    container_name: supply-validator
+    image: hyperledger/sawtooth-validator:1.1
+    container_name: tnt-validator
     expose:
       - 4004
     ports:
@@ -185,27 +185,34 @@ services:
     entrypoint: |
       bash -c "
         if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
-          sawadm keygen &&
-          sawtooth keygen my_key &&
-          sawset genesis -k /root/.sawtooth/keys/my_key.priv &&
-          sawadm genesis config-genesis.batch
+          sawadm keygen
+          sawset genesis \
+            -k /etc/sawtooth/keys/validator.priv \
+            -o config-genesis.batch && \
+          sawset proposal create \
+            -k /etc/sawtooth/keys/validator.priv \
+            sawtooth.consensus.algorithm.name=Devmode \
+            sawtooth.consensus.algorithm.version=0.1 \
+            -o config.batch && \
+          sawadm genesis config-genesis.batch config.batch
         fi;
         sawtooth-validator -vv \
           --endpoint tcp://validator:8800 \
           --bind component:tcp://eth0:4004 \
-          --bind network:tcp://eth0:8800
+          --bind network:tcp://eth0:8800 \
+          --bind consensus:tcp://eth0:5050 \
       "
 
   settings-tp:
-    image: hyperledger/sawtooth-settings-tp:1.0
-    container_name: supply-settings-tp
+    image: hyperledger/sawtooth-settings-tp:1.1
+    container_name: tnt-settings-tp
     depends_on:
       - validator
     entrypoint: settings-tp -vv -C tcp://validator:4004
 
   rest-api:
-    image: hyperledger/sawtooth-rest-api:1.0
-    container_name: supply-rest-api
+    image: hyperledger/sawtooth-rest-api:1.1
+    container_name: tnt-rest-api
     expose:
       - 8008
     ports:
@@ -216,3 +223,12 @@ services:
       sawtooth-rest-api -vv
         --connect tcp://validator:4004
         --bind rest-api:8008
+
+  devmode-rust:
+    image: hyperledger/sawtooth-devmode-engine-rust:1.1
+    container_name: tnt-devmode-engine-rust
+    depends_on:
+      - validator
+    command: |
+        devmode-engine-rust -v --connect tcp://validator:5050
+    stop_signal: SIGKILL

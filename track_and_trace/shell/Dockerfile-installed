@@ -13,10 +13,10 @@
 # limitations under the License.
 # ------------------------------------------------------------------------------
 
-FROM hyperledger/sawtooth-shell:1.0
+FROM hyperledger/sawtooth-shell:1.1
 
 # Install Python, Node.js, and Ubuntu dependencies
-RUN echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable xenial universe" >> /etc/apt/sources.list \
+RUN echo "deb http://repo.sawtooth.me/ubuntu/bumper/stable xenial universe" >> /etc/apt/sources.list \
   && (apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8AA7AF1F1091A5FD \
   || apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 8AA7AF1F1091A5FD) \
   && apt-get update \
@@ -54,7 +54,7 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable xenial universe" >> /etc
 WORKDIR /sawtooth-supply-chain
 
 # Install NPM dependencies to central location, link to individual components
-COPY bin/splice_json bin/
+COPY shell/splice_json bin/
 COPY asset_client/ asset_client/
 COPY fish_client/ fish_client/
 COPY protos/ protos/
@@ -74,6 +74,9 @@ RUN \
   npm config set https-proxy $https_proxy; \
  fi
 
+RUN if [ -d "asset_client/node_modules" ]; then rm -rf asset_client/node_modules; fi \
+ && if [ -d "fish_client/node_modules" ]; then rm -rf fish_client/node_modules; fi \
+ && if [ -d "server/node_modules" ]; then rm -rf server/node_modules; fi
 
 RUN mkdir /node_deps \
   && bin/splice_json \

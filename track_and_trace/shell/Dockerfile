@@ -13,12 +13,12 @@
 # limitations under the License.
 # ------------------------------------------------------------------------------
 
-FROM hyperledger/sawtooth-shell:nightly
+FROM hyperledger/sawtooth-shell:1.1
 
 # Install Python, Node.js, and Ubuntu dependencies
-RUN echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable bionic universe" >> /etc/apt/sources.list \
-  && (apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 44FC67F19B2466EA \
-  || apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 44FC67F19B2466EA) \
+RUN echo "deb http://repo.sawtooth.me/ubuntu/bumper/stable xenial universe" >> /etc/apt/sources.list \
+  && (apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8AA7AF1F1091A5FD \
+  || apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 8AA7AF1F1091A5FD) \
   && apt-get update \
   && apt-get install -y -q \
     apt-transport-https \
@@ -51,10 +51,10 @@ RUN echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable bionic universe" >> /etc
   && rm -rf /var/lib/apt/lists/* \
   && npm install -g prebuild-install
 
-WORKDIR /sawtooth-supply-chain
+WORKDIR /track_and_trace
 
 # Install NPM dependencies to central location, link to individual components
-COPY bin/splice_json bin/
+COPY shell/splice_json bin/
 COPY asset_client/package.json asset_client/
 COPY fish_client/package.json fish_client/
 COPY server/package.json server/
@@ -83,7 +83,5 @@ RUN mkdir /node_deps \
   && ln -s /node_deps/node_modules asset_client/ \
   && ln -s /node_deps/node_modules fish_client/ \
   && ln -s /node_deps/node_modules server/
-
-ENV PATH $PATH:/sawtooth-supply-chain/bin
 
 CMD ["tail", "-f", "/dev/null"]
