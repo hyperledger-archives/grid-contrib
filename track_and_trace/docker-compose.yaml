@@ -63,7 +63,8 @@ services:
     image: tnt-tp
     container_name: tnt-tp
     build:
-      context: ../../grid/contracts/track_and_trace
+      context: ../../grid/
+      dockerfile: contracts/track_and_trace/Dockerfile
       args:
         - http_proxy
         - https_proxy
