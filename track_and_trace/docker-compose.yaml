@@ -21,14 +21,14 @@ services:
     image: tnt-shell
     container_name: tnt-shell
     build:
-      context: .
+      context: ../grid-contrib/track_and_trace/
       dockerfile: shell/Dockerfile
       args:
         - http_proxy
         - https_proxy
         - no_proxy
     volumes:
-      - .:/track_and_trace
+      - ../grid-contrib/track_and_trace/:/track_and_trace
       - /track_and_trace/asset_client/node_modules
       - /track_and_trace/fish_client/node_modules
       - /track_and_trace/server/node_modules
@@ -59,42 +59,18 @@ services:
         tail -f /dev/null
       "
 
-  processor:
-    image: tnt-tp
-    container_name: tnt-tp
-    build:
-      context: ../../grid/
-      dockerfile: contracts/track_and_trace/Dockerfile
-      args:
-        - http_proxy
-        - https_proxy
-        - no_proxy
-    environment:
-      - 'http_proxy=${http_proxy}'
-      - 'https_proxy=${https_proxy}'
-      - 'no_proxy=rest-api,server,eth0,validator,${no_proxy}'
-    volumes:
-      - ../../grid/:/grid
-      - /grid/contracts/track_and_trace/target
-      - /grid/contracts/track_and_trace/src/messages
-    entrypoint: |
-      bash -c "
-        cargo build &&
-        grid-track-and-trace-tp -v -C tcp://validator:4004
-      "
-
   server:
     image: tnt-server
     container_name: tnt-server
     build:
-      context: .
+      context: ../grid-contrib/track_and_trace/
       dockerfile: server/Dockerfile
       args:
         - http_proxy
         - https_proxy
         - no_proxy
     volumes:
-      - .:/track_and_trace
+      - ../grid-contrib/track_and_trace/:/track_and_trace
       - /track_and_trace/server/node_modules
     expose:
       - 3000
@@ -116,14 +92,14 @@ services:
     image: tnt-ledger-sync
     container_name: tnt-ledger-sync
     build:
-      context: .
+      context: ../grid-contrib/track_and_trace/
       dockerfile: ledger_sync/Dockerfile
       args:
         - http_proxy
         - https_proxy
         - no_proxy
     volumes:
-      - .:/track_and_trace
+      - ../grid-contrib/track_and_trace/:/track_and_trace
       - /track_and_trace/ledger_sync/node_modules
     depends_on:
       - validator
@@ -138,9 +114,11 @@ services:
   asset-client:
     image: tnt-asset-client
     container_name: tnt-asset-client
-    build: ./asset_client
+    build:
+      context: ../grid-contrib/track_and_trace/
+      dockerfile: ./asset_client/Dockerfile
     volumes:
-      - ./asset_client/public/:/usr/local/apache2/htdocs/
+      - ../grid-contrib/track_and_trace/asset_client/public/:/usr/local/apache2/htdocs/
     expose:
       - 80
     ports:
@@ -151,9 +129,11 @@ services:
   fish-client:
     image: tnt-fish-client
     container_name: tnt-fish-client
-    build: ./fish_client
+    build:
+      context: ../grid-contrib/track_and_trace/
+      dockerfile: ./fish_client/Dockerfile
     volumes:
-      - ./fish_client/public/:/usr/local/apache2/htdocs/
+      - ../grid-contrib/track_and_trace/fish_client/public/:/usr/local/apache2/htdocs/
     expose:
       - 80
     ports:

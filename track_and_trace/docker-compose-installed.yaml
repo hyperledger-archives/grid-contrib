@@ -21,7 +21,7 @@ services:
     image: tnt-shell-installed:${ISOLATION_ID}
     container_name: tnt-shell-installed
     build:
-      context: .
+      context: ../grid-contrib/track_and_trace/
       dockerfile: shell/Dockerfile-installed
       args:
         - http_proxy
@@ -54,25 +54,11 @@ services:
         tail -f /dev/null
       "
 
-  processor:
-    image: tnt-tp-installed:${ISOLATION_ID}
-    container_name: tnt-tp-installed
-    build:
-      context: ../../grid
-      dockerfile: contracts/track_and_trace/Dockerfile-installed-${DISTRO}
-      args:
-        - http_proxy
-        - https_proxy
-        - no_proxy
-    depends_on:
-      - validator
-    entrypoint: grid-track-and-trace-tp -v -C tcp://validator:4004
-
   server:
     image: tnt-server-installed:${ISOLATION_ID}
     container_name: tnt-server-installed
     build:
-      context: .
+      context: ../grid-contrib/track_and_trace/
       dockerfile: server/Dockerfile-installed-${DISTRO}
       args:
         - http_proxy
@@ -99,7 +85,7 @@ services:
     image: tnt-ledger-sync-installed:${ISOLATION_ID}
     container_name: tnt-ledger-sync-installed
     build:
-      context: .
+      context: ../grid-contrib/track_and_trace/
       dockerfile: ledger_sync/Dockerfile-installed-${DISTRO}
     depends_on:
       - validator
@@ -112,7 +98,7 @@ services:
     image: tnt-asset-client-installed:${ISOLATION_ID}
     container_name: tnt-asset-client-installed
     build:
-      context: .
+      context: ../grid-contrib/track_and_trace/
       dockerfile: asset_client/Dockerfile-installed
     expose:
       - 80
@@ -125,7 +111,7 @@ services:
     image: tnt-fish-client-installed:${ISOLATION_ID}
     container_name: tnt-fish-client-installed
     build:
-      context: .
+      context: ../grid-contrib/track_and_trace/
       dockerfile: fish_client/Dockerfile-installed
     expose:
       - 80
