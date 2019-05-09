@@ -29,7 +29,7 @@ const {
 const modals = require('../components/modals')
 const api = require('../services/api')
 
-const STORAGE_KEY = 'fish_net.encryptedKey'
+const ENCRYPTED_KEY = 'fish_net.encryptedKey'
 const FAMILY_NAME = 'grid_track_and_trace'
 const FAMILY_VERSION = '1.0'
 const NAMESPACE = 'a43b46'
@@ -94,7 +94,7 @@ const makePrivateKey = password => {
   signerPublicKey = context.getPublicKey(privateKey).asHex()
 
   const encryptedKey = sjcl.encrypt(password, privateKey.asHex())
-  window.localStorage.setItem(STORAGE_KEY, encryptedKey)
+  window.localStorage.setItem(ENCRYPTED_KEY, encryptedKey)
 
   return { encryptedKey, publicKey: signerPublicKey }
 }
@@ -108,7 +108,7 @@ const setPrivateKey = (password, encryptedKey) => {
   privateKey = secp256k1.Secp256k1PrivateKey.fromHex(privateKeyHex)
   signerPublicKey = context.getPublicKey(privateKey).asHex()
 
-  window.localStorage.setItem(STORAGE_KEY, encryptedKey)
+  window.localStorage.setItem(ENCRYPTED_KEY, encryptedKey)
 
   return encryptedKey
 }
@@ -117,9 +117,9 @@ const setPrivateKey = (password, encryptedKey) => {
  * Clears the users private key from memory and storage.
  */
 const clearPrivateKey = () => {
-  const encryptedKey = window.localStorage.getItem(STORAGE_KEY)
+  const encryptedKey = window.localStorage.getItem(ENCRYPTED_KEY)
 
-  window.localStorage.clear(STORAGE_KEY)
+  window.localStorage.removeItem(ENCRYPTED_KEY)
   privateKey = null
   signerPublicKey = null
 
@@ -133,7 +133,7 @@ const getPrivateKey = () => {
   return Promise.resolve()
   .then(() => {
     if (privateKey) return privateKey.asHex()
-    const encryptedKey = window.localStorage.getItem(STORAGE_KEY)
+    const encryptedKey = window.localStorage.getItem(ENCRYPTED_KEY)
     return requestPassword()
       .then(password => sjcl.decrypt(password, encryptedKey))
   })
@@ -146,7 +146,7 @@ const changePassword = password => {
   return getPrivateKey()
     .then(privateKey => {
       const encryptedKey = sjcl.encrypt(password, privateKey)
-      window.localStorage.setItem(STORAGE_KEY, encryptedKey)
+      window.localStorage.setItem(ENCRYPTED_KEY, encryptedKey)
       return encryptedKey
     })
 }
@@ -163,7 +163,7 @@ const submit = (payloads, wait = false) => {
 
       return requestPassword()
         .then(password => {
-          const encryptedKey = window.localStorage.getItem(STORAGE_KEY)
+          const encryptedKey = window.localStorage.getItem(ENCRYPTED_KEY)
           setPrivateKey(password, encryptedKey)
         })
     })
