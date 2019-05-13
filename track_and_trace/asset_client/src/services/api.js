@@ -21,7 +21,7 @@ const _ = require('lodash')
 const sjcl = require('sjcl')
 
 const API_PATH = 'api/'
-const STORAGE_KEY = 'asset_track.authorization'
+const AUTH_KEY = 'asset_track.authorization'
 let authToken = null
 
 /**
@@ -38,20 +38,20 @@ const hashPassword = password => {
  */
 const getAuth = () => {
   if (!authToken) {
-    authToken = window.localStorage.getItem(STORAGE_KEY)
+    authToken = window.localStorage.getItem(AUTH_KEY)
   }
   return authToken
 }
 
 const setAuth = token => {
-  window.localStorage.setItem(STORAGE_KEY, token)
+  window.localStorage.setItem(AUTH_KEY, token)
   authToken = token
   return authToken
 }
 
 const clearAuth = () => {
   const token = getAuth()
-  window.localStorage.clear(STORAGE_KEY)
+  window.localStorage.removeItem(AUTH_KEY)
   authToken = null
   return token
 }
