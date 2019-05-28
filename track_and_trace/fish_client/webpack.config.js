@@ -2,7 +2,9 @@ const path = require('path')
 const webpack = require('webpack')
 
 module.exports = {
+  mode: 'development',
   entry: './src/main',
+  devtool: 'inline-source-map',
 
   output: {
     path: path.resolve(__dirname, 'public/dist'),
@@ -40,11 +42,12 @@ module.exports = {
   ],
 
   devServer: {
-    port: 3001,
+    port: 3002,
     contentBase: path.join(__dirname, 'public'),
     publicPath: '/dist/',
+    open: true,
     proxy: {
-      '/api': 'http://localhost:3000'
+      '/api': 'http://localhost:8022'
     }
   }
 }
