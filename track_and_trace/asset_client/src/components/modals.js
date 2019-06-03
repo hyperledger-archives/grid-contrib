@@ -18,7 +18,8 @@
 
 const m = require('mithril')
 const _ = require('lodash')
-const $ = require('jquery')
+
+const _noop = () => null
 
 /**
  * A basic Bootstrap modal. Requires at least a title and body be set in
@@ -107,7 +108,7 @@ const show = (modal, attrs, children) => {
   const container = document.getElementById('modal-container')
   m.render(container,
            m(modal, _.assign(attrs, { acceptFn, cancelFn }, children)))
-  const $modal = $('#modal')
+  const $modal = document.getElementById('modal')
   $modal.on('hidden.bs.modal', () => m.mount(container, null))
   $modal.modal('show')
 
