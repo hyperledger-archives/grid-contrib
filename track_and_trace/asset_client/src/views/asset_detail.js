@@ -272,7 +272,7 @@ const _agentLink = (key) =>
     truncate(key, {length: 24}))
 
 const _propLink = (record, propName, content) =>
-  m(`a[href=/assets/${record.recordId}/${propName}]`,
+  m(`a[href=/assets/${record.record_id}/${propName}]`,
     { oncreate: m.route.link },
     content)
 

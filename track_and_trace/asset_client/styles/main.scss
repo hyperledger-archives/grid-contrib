@@ -1,6 +1,6 @@
 // Styling for Google Maps API
-#map-container {
-  height: 400px;
+#map {
+  max-height: 400px;
   width: 100%;
 }
 
@@ -35,6 +35,7 @@ input[type=password] {
   border: 0;
   border-bottom: 1px solid #bbb;
   transition-duration: 0.3s;
+  margin-bottom: 0.5em;
 }
 
 input[type=text]:focus,

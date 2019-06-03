@@ -26,6 +26,7 @@ const parsing = require('../services/parsing')
 const layout = require('../components/layout')
 const { LineGraphWidget, MapWidget } = require('../components/data')
 const { Table, PagingButtons } = require('../components/tables')
+const { PropertyDefinition } = require('../protobuf')
 
 const PAGE_SIZE = 50
 
@@ -34,7 +35,7 @@ const withIntVal = fn => m.withAttr('value', v => fn(parsing.toInt(v)))
 const typedWidget = state => {
   const property = _.get(state, 'property', {})
 
-  if (property.dataType === 'LOCATION') {
+  if (property.data_type === 'LatLong') {
     return m(MapWidget, {
       coordinates: property.updates.map(update => update.value)
     })
@@ -52,7 +53,7 @@ const updateSubmitter = state => e => {
 
   auth.getSigner()
     .then((signer) => {
-      const { name, dataType, recordId } = state.property
+      const { name, data_type, record_id } = state.property
 
       let value = null
       if (state.update) {
@@ -62,14 +63,13 @@ const updateSubmitter = state => e => {
       }
 
       const update = { name }
-      update.dataType = PropertyDefinition.DataType[dataType]
-      update[`${dataType.toLowerCase()}Value`] = value
-
-      return Promise.resolve(records.updateProperties({
-        recordId,
-        properties: [update],
+      update.dataType = PropertyDefinition.DataType[_.snakeCase(data_type).toUpperCase()]
+      update[`${_.camelCase(data_type)}Value`] = value
+      return Promise.resolve(records.updateProperties(
+        record_id,
+        [update],
         signer
-      }))
+      ))
     })
 }
 
@@ -78,21 +78,25 @@ const typedInput = state => {
   if (state.property.dataType === 'NUMBER') {
     return m('.col-md-8', [
       m('input.form-control', {
+        type: 'number',
         placeholder: 'Enter New Value...',
         oninput: withIntVal(value => { state.update = value })
       })
     ])
   }
-
-  if (state.property.dataType === 'LOCATION') {
+  if (state.property.data_type === 'LatLong') {
     return [
       m('.col.md-4.mr-1',
         m('input.form-control', {
+          type: 'number',
+          step: 'any',
           placeholder: 'Enter New Latitude...',
           oninput: withIntVal(value => { state.tmp.latitude = value })
         })),
       m('.col.md-4',
         m('input.form-control', {
+          type: 'number',
+          step: 'any',
           placeholder: 'Enter New Longitude...',
           oninput: withIntVal(value => { state.tmp.longitude = value })
         }))
@@ -129,18 +133,20 @@ const PropertyDetailPage = {
   oninit (vnode) {
     vnode.state.currentPage = 0
     vnode.state.tmp = {}
-
     const refresh = () => {
-      api.get(`records/${vnode.attrs.recordId}/${vnode.attrs.name}`)
-        .then(property => {
-          property.updates.forEach(update => {
-            update.value = parsing.floatifyValue(update.value)
-          })
-          vnode.state.property = property
-        })
+      records.fetchRecord(vnode.attrs.recordId)
+        .then(res => {
+          if (res.properties) {
+            let property = res.properties.find((prop) => prop.name === vnode.attrs.name)
+            if (property) {
+              vnode.state.property = property
+            } else {
+              vnode.state.property = null
+            }
+          }}
+        )
         .then(() => { vnode.state.refreshId = setTimeout(refresh, 2000) })
     }
-
     refresh()
   },
 
@@ -158,6 +164,15 @@ const PropertyDetailPage = {
     const updates = _.get(vnode.state, 'property.updates', [])
     const page = updates.slice(vnode.state.currentPage * PAGE_SIZE,
                                (vnode.state.currentPage + 1) * PAGE_SIZE)
+    const timestampAcc = []
+    const filteredPage = page.filter((update) => {
+      if (!timestampAcc.includes(update.timestamp)) {
+        timestampAcc.push(update.timestamp)
+        return true
+      } else {
+        return false
+      }
+    })
 
     return [
       layout.title(`${name} of ${record}`),
@@ -174,12 +189,12 @@ const PropertyDetailPage = {
         ]),
         m(Table, {
           headers: ['Value', 'Reporter', 'Time'],
-          rows: page.map(update => {
+          rows: filteredPage.map(update => {
             return [
               parsing.stringifyValue(update.value,
-                                     vnode.state.property.dataType,
+                                     vnode.state.property.data_type,
                                      vnode.state.property.name),
-              update.reporter.name,
+              _.truncate(update.reporter.public_key, {length: 24}),
               parsing.formatTimestamp(update.timestamp)
             ]
           }),
