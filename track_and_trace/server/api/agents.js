@@ -23,7 +23,7 @@ const FILTER_KEYS = ['name', 'publicKey']
 
 const list = params => db.list(_.pick(params, FILTER_KEYS))
 
-const fetch = ({ publicKey, authedKey }) => db.fetch(publicKey, publicKey === authedKey)
+const fetch = ({ publicKey }) => db.fetch(publicKey, publicKey === authedKey)
 
 module.exports = {
   list,

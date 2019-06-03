@@ -18,18 +18,11 @@
 
 const _ = require('lodash')
 const db = require('../db/users')
-const agents = require('../db/agents')
 const auth = require('./auth')
 const { BadRequest } = require('./errors')
 
 const create = user => {
   return Promise.resolve()
-    .then(() => {
-      return agents.fetch(user.publicKey, null)
-        .catch(() => {
-          throw new BadRequest('Public key must match an Agent on blockchain')
-        })
-    })
     .then(() => auth.hashPassword(user.password))
     .then(hashed => {
       return db.insert(_.assign({}, user, {password: hashed}))
@@ -37,8 +30,9 @@ const create = user => {
     })
     .then(() => auth.createToken(user.publicKey))
     .then(token => ({
+      status: 'ok',
       authorization: token,
-      encryptedKey: user.encryptedKey || null
+      encryptedPrivateKey: user.encryptedPrivateKey || null
     }))
 }
 

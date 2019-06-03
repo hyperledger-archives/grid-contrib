@@ -20,8 +20,7 @@ const m = require('mithril')
 const _ = require('lodash')
 const sjcl = require('sjcl')
 
-const API_PATH = 'api/'
-const AUTH_KEY = 'asset_track.authorization'
+const AUTH_KEY = 'asset_track/authorization'
 let authToken = null
 
 /**
@@ -50,10 +49,7 @@ const setAuth = token => {
 }
 
 const clearAuth = () => {
-  const token = getAuth()
-  window.localStorage.removeItem(AUTH_KEY)
   authToken = null
-  return token
 }
 
 /**
