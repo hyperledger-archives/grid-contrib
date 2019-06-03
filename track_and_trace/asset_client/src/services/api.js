@@ -67,19 +67,23 @@ const getPublicKey = () => {
 
 // Adds Authorization header and prepends API path to url
 const baseRequest = opts => {
+  if (!opts.api) {
+    opts.api = 'api'
+  }
   const Authorization = getAuth()
   const authHeader = Authorization ? { Authorization } : {}
   opts.headers = _.assign(opts.headers, authHeader)
-  opts.url = API_PATH + opts.url
+  opts.url = opts.api + '/' + opts.url
   return m.request(opts)
 }
 
 /**
  * Submits a request to an api endpoint with an auth header if present
  */
-const request = (method, endpoint, data) => {
+const request = (method, endpoint, data, api) => {
   return baseRequest({
     method,
+    api,
     url: endpoint,
     data
   })
@@ -95,10 +99,11 @@ const patch = _.partial(request, 'PATCH')
 /**
  * Method for posting a binary file to the API
  */
-const postBinary = (endpoint, data) => {
+const postBinary = (endpoint, data, api) => {
   return baseRequest({
     method: 'POST',
     url: endpoint,
+    api,
     headers: { 'Content-Type': 'application/octet-stream' },
     // prevent Mithril from trying to JSON stringify the body
     serialize: x => x,
