@@ -44,6 +44,17 @@ const field = (onValue, attrs = null) => {
   return m('input.form-control.mb-1', _.assign(defaults, attrs))
 }
 
+const inputField = (name, label, value, oninput, type = 'text') =>
+  m('.form-group', [
+    m(`label[for=${name}]`, label),
+    m('input.form-control', {
+      oninput: m.withAttr('value', oninput),
+      value,
+      type,
+      name,
+    }),
+  ])
+
 /**
  * Returns a labeled input field which passes its value to a callback
  */
@@ -147,6 +158,7 @@ const MultiSelect = {
 module.exports = {
   group,
   field,
+  inputField,
   input,
   textInput,
   passwordInput,
