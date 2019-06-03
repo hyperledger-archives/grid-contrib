@@ -39,9 +39,9 @@ r.connect({host: HOST, port: PORT})
       })
       .then(() => {
         // The usernames table is used to quickly ensure unique usernames
-        console.log('Creating "usernames" table...')
-        return r.db(NAME).tableCreate('usernames', {
-          primaryKey: 'username'
+        console.log('Creating "emails" table...')
+        return r.db(NAME).tableCreate('emails', {
+          primaryKey: 'email'
         }).run(conn)
       })
       .then(() => {

@@ -20,11 +20,10 @@ const _ = require('lodash')
 const db = require('./')
 
 const USER_SCHEMA = {
-  username: String,
   password: String,
   email: /.+@.+\..+/,
   publicKey: String,
-  '?encryptedKey': String,
+  '?encryptedPrivateKey': String,
   '*': null
 }
 
@@ -40,7 +39,7 @@ const insert = user => {
   return db.validate(user, USER_SCHEMA)
     .then(() => db.insertTable('users', user))
     .then(results => {
-      return db.insertTable('usernames', {username: user.username})
+      return db.insertTable('emails', {email: user.email})
         .then(() => results)
         .catch(err => {
           // Delete user, before re-throwing error
@@ -65,12 +64,12 @@ const update = (publicKey, changes) => {
       const newUser = results.changes[0].new_val
 
       // If username did not change, send back new users
-      if (!changes.username) return newUser
+      if (!changes.email) return newUser
 
       // Modify usernames table with new name
-      return db.modifyTable('usernames', usernames => {
-        return usernames.get(oldUser.username).delete().do(() => {
-          return usernames.insert({username: changes.username})
+      return db.modifyTable('emails', emails => {
+        return emails.get(oldUser.email).delete().do(() => {
+          return emails.insert({email: changes.email})
         })
       })
         .then(() => newUser)
