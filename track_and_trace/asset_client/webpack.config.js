@@ -2,7 +2,9 @@ const path = require('path')
 const webpack = require('webpack')
 
 module.exports = {
+  mode: 'development',
   entry: './src/main',
+  devtool: 'inline-source-map',
 
   output: {
     path: path.resolve(__dirname, 'public/dist'),
@@ -43,8 +45,10 @@ module.exports = {
     port: 3001,
     contentBase: path.join(__dirname, 'public'),
     publicPath: '/dist/',
-    proxy: {
-      '/api': 'http://localhost:3000'
-    }
+    open: true,
+    proxy: [{
+      context: ['/api', '/sawtooth', '/grid'],
+      target: 'http://localhost:8021'
+    }]
   }
 }

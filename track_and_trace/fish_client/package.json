@@ -5,7 +5,7 @@
   "main": "",
   "scripts": {
     "generate-proto-files": "node scripts/generate_proto_json.js > src/generated_protos.json",
-    "watch": "npm run generate-proto-files && webpack-dev-server --env development --hot",
+    "watch": "npm run generate-proto-files && webpack-dev-server --hot",
     "build": "npm run generate-proto-files && webpack --env production",
     "test": "standard src/**/*.js"
   },

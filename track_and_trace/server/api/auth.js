@@ -52,13 +52,13 @@ const verifyToken = token => {
 
 // Checks an object with username and password keys.
 // Returns an auth token and the user's private key if it passes.
-const authorize = ({ username, password }) => {
-  if (!username || !password) {
+const authorize = ({ email, password }) => {
+  if (!email || !password) {
     const message = 'Authorization requires username and password'
     return Promise.reject(new BadRequest(message))
   }
 
-  return users.query(users => users.filter({ username }))
+  return users.query(users => users.filter({ email }))
     .then(matches => {
       if (matches.length === 0) throw new Error()
       const user = matches[0]
@@ -70,7 +70,7 @@ const authorize = ({ username, password }) => {
         })
         .then(token => ({
           authorization: token,
-          encryptedKey: user.encryptedKey
+          user
         }))
     })
     .catch(() => { throw new Unauthorized('Authorization Failed') })

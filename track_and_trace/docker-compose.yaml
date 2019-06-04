@@ -125,6 +125,8 @@ services:
       - '8021:80'
     depends_on:
       - server
+      - rest-api
+      - gridd
 
   fish-client:
     image: tnt-fish-client

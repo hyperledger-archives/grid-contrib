@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Intel Corporation
+ * Copyright 2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,13 @@
  */
 'use strict'
 
-const _ = require('lodash')
-const db = require('../db/agents')
-
-const FILTER_KEYS = ['name', 'publicKey']
-
-const list = params => db.list(_.pick(params, FILTER_KEYS))
-
-const fetch = ({ publicKey }) => db.fetch(publicKey, publicKey === authedKey)
+class PayloadError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = "Payload Error"
+  }
+}
 
 module.exports = {
-  list,
-  fetch
+  PayloadError
 }

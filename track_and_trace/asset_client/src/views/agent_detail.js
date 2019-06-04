@@ -20,6 +20,8 @@ const m = require('mithril')
 const _ = require('lodash')
 
 const api = require('../services/api')
+const agents = require('../services/agents')
+const auth = require('../services/auth')
 const transactions = require('../services/transactions')
 const layout = require('../components/layout')
 const forms = require('../components/forms')
@@ -69,16 +71,10 @@ const privateKeyField = state => {
           state.toggled.privateKey = false
           return
         }
-        return transactions.getPrivateKey()
+        return auth.getPrivateKey()
           .then(privateKey => {
             state.toggled.privateKey = privateKey
             m.redraw()
-          })
-      }),
-      forms.clickIcon('cloud-download', () => {
-        return transactions.getPrivateKey()
-          .then(privateKey => {
-            forms.triggerDownload(`${state.agent.username}.priv`, privateKey)
           })
       })),
     toggledInfo(
@@ -136,24 +132,24 @@ const AgentDetailPage = {
   oninit (vnode) {
     vnode.state.toggled = {}
     vnode.state.update = {}
-    api.get(`agents/${vnode.attrs.publicKey}`)
-      .then(agent => { vnode.state.agent = agent })
+    agents.fetchAgent(vnode.attrs.publicKey)
+      .then(agent => {
+        vnode.state.agent = agent
+      })
   },
 
   view (vnode) {
-    const publicKey = _.get(vnode.state, 'agent.publicKey', '')
+    const publicKey = _.get(vnode.state, 'agent.public_key', '')
+    const org = _.get(vnode.state, 'agent.org_id', '')
+    const roles = _.get(vnode.state, 'agent.roles', '')
 
     const profileContent = [
       layout.row(privateKeyField(vnode.state)),
-      layout.row([
-        editField(vnode.state, 'Username', 'username'),
-        passwordField(vnode.state)
-      ]),
-      layout.row(editField(vnode.state, 'Email', 'email'))
+      layout.row(staticField('Organization', org)),
+      layout.row(staticField('Roles', roles))
     ]
 
     return [
-      layout.title(_.get(vnode.state, 'agent.name', '')),
       m('.container',
         layout.row(staticField('Public Key', publicKey)),
         publicKey === api.getPublicKey() ? profileContent : null)

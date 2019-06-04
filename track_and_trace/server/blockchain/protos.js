@@ -34,32 +34,58 @@ const loadProtos = (filename, protoNames) => {
 
 const compile = () => {
   return Promise.all([
-    loadProtos('agent.proto', [
-      'Agent',
-      'AgentContainer'
+    loadProtos('pike_payload.proto', [
+      'PikePayload',
+      'CreateAgentAction',
+      'UpdateAgentAction',
+      'CreateOrganizationAction',
+      'UpdateOrganizationAction'
     ]),
-    loadProtos('property.proto', [
+    loadProtos('pike_state.proto', [
+      'Agent',
+      'AgentList',
+      'KeyValueEntry',
+      'Organization',
+      'OrganizationList'
+    ]),
+    loadProtos('schema_payload.proto', [
+      'SchemaPayload',
+      'SchemaCreateAction',
+      'SchemaUpdateAction'
+    ]),
+    loadProtos('schema_state.proto', [
+      'PropertyDefinition',
+      'Schema',
+      'SchemaList',
+      'LatLong',
+      'PropertyValue'
+    ]),
+    loadProtos('track_and_trace_agent.proto', [
+      'TrackAndTraceAgent',
+      'TrackAndTraceAgentContainer'
+    ]),
+    loadProtos('track_and_trace_property.proto', [
       'Property',
       'PropertyContainer',
       'PropertyPage',
       'PropertyPageContainer',
       'PropertySchema',
-      'PropertyValue',
+      'TrackAndTracePropertyValue',
       'Location'
     ]),
-    loadProtos('proposal.proto', [
+    loadProtos('track_and_trace_proposal.proto', [
       'Proposal',
       'ProposalContainer'
     ]),
-    loadProtos('record.proto', [
+    loadProtos('track_and_trace_record.proto', [
       'Record',
       'RecordContainer',
       'RecordType',
       'RecordTypeContainer'
     ]),
-    loadProtos('payload.proto', [
+    loadProtos('track_and_trace_payload.proto', [
       'SCPayload',
-      'CreateAgentAction',
+      'CreateTrackAndTraceAgentAction',
       'FinalizeRecordAction',
       'CreateRecordAction',
       'CreateRecordTypeAction',
