@@ -19,23 +19,30 @@
 const _ = require('lodash')
 const request = require('request-promise-native')
 const { createHash } = require('crypto')
-const secp256k1 = require('sawtooth-sdk/signing/secp256k1')
+const { createContext, CryptoFactory } = require('sawtooth-sdk/signing')
 const {
   Transaction,
   TransactionHeader,
-  TransactionList
+  Batch,
+  BatchHeader,
+  BatchList
 } = require('sawtooth-sdk/protobuf')
 const protos = require('../blockchain/protos')
 
 const FAMILY_NAME = 'grid_track_and_trace'
 const FAMILY_VERSION = '1.0'
-const NAMESPACE = 'a43b46'
 
-const SERVER = process.env.SERVER || 'http://localhost:3000'
+const SERVER = process.env.SERVER || 'http://localhost:8021/api'
 const RETRY_WAIT = process.env.RETRY_WAIT || 5000
 
+const hash =(object, num) => {
+  let sha = createHash("sha512")
+  return sha.update(object).digest("hex").substring(0, num)
+}
+
 const awaitServerInfo = () => {
-  return request(`${SERVER}/info`)
+  console.log(`Server: ${SERVER}`)
+  return request(`${SERVER}/api/info`)
     .catch(() => {
       console.warn(
         `Server unavailable, retrying in ${RETRY_WAIT / 1000} seconds...`)
@@ -49,48 +56,75 @@ const awaitServerPubkey = () => {
 }
 
 const encodeHeader = (signerPublicKey, batcherPublicKey, payload) => {
+  const GRID_SCHEMA_NAMESPACE = hash(FAMILY_NAME,6) + '01'
   return TransactionHeader.encode({
     signerPublicKey,
     batcherPublicKey,
     familyName: FAMILY_NAME,
     familyVersion: FAMILY_VERSION,
-    inputs: [NAMESPACE],
-    outputs: [NAMESPACE],
-    nonce: (Math.random() * 10 ** 18).toString(36),
+    inputs: [GRID_SCHEMA_NAMESPACE],
+    outputs: [GRID_SCHEAM_NAMESPACE],
     payloadSha512: createHash('sha512').update(payload).digest('hex')
   }).finish()
 }
 
 const getTxnCreator = (privateKeyHex = null, batcherPublicKeyHex = null) => {
-  const context = new secp256k1.Secp256k1Context()
+  const context = createContext('secp256k1')
+  const cryptoFactory = new CryptoFactory(context)
   const privateKey = privateKeyHex === null
     ? context.newRandomPrivateKey()
     : secp256k1.Secp256k1PrivateKey.fromHex(privateKeyHex)
 
-  const signerPublicKey = context.getPublicKey(privateKey).asHex()
-  const batcherPublicKey = batcherPublicKeyHex === null
-    ? signerPublicKey
-    : batcherPublicKeyHex
+  const signer = cryptoFactory.newSigner(privateKey)
 
-  return payload => {
+  const signerPublicKey = signer.getPublicKey().asHex()
+  const batcherPublicKey = signerPublicKey
+
+  let createTxn = payload => {
     const header = encodeHeader(signerPublicKey, batcherPublicKey, payload)
-    const headerSignature = context.sign(header, privateKey)
+    const headerSignature = signer.sign(header)
     return Transaction.create({ header, headerSignature, payload })
+  }
+
+  return {
+    createTxn,
+    signer,
+    signerPublicKey
   }
 }
 
-const submitTxns = transactions => {
+const submitTxns = (transactions, signer, signerPublicKey) => {
+  let transactionIds = transactions.map((txn) => txn.headerSignature)
+
+  const batchHeaderBytes = BatchHeader.encode({
+    signerPublicKey: signerPublicKey,
+    transactionIds
+  }).finish()
+
+  let signature = signer.sign(batchHeaderBytes)
+
+  const batch = Batch.create({
+    header: batchHeaderBytes,
+    headerSignature: signature,
+    transactions
+  })
+
+  const batchListBytes = BatchList.encode({
+    batches: [batch]
+  }).finish()
+
+  console.log(`Server: ${SERVER}`)
   return request({
     method: 'POST',
-    url: `${SERVER}/transactions?wait`,
+    url: `${SERVER}/grid/batches`,
     headers: { 'Content-Type': 'application/octet-stream' },
     encoding: null,
-    body: TransactionList.encode({ transactions }).finish()
+    body: batchListBytes
   })
 }
 
 const encodeTimestampedPayload = message => {
-  return protos.SCPayload.encode(_.assign({
+  return protos.SchemaPayload.encode(_.assign({
     timestamp: Math.floor(Date.now() / 1000)
   }, message)).finish()
 }

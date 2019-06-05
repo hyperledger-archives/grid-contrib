@@ -1,0 +1,36 @@
+[
+  {
+    "org_id": "Sample-Org_00",
+    "org_name": "Sample Org",
+    "org_address": "123 Sesame St",
+    "email": "elmo@abc.xyz",
+    "password": "abc123",
+    "schemas": [
+      {
+        "name": "asset",
+        "description": "A sample asset schema",
+        "properties": [
+            {
+              "name": "serialNumber",
+              "dataType": 4,
+              "required": true
+            },
+            {
+              "name": "type",
+              "dataType": 4,
+              "required": true
+            },
+            {
+              "name": "weight",
+              "dataType": 3,
+              "numberExponent": -6
+            },
+            {
+              "name": "location",
+              "dataType": 7
+            }
+        ]
+      }
+    ]
+  }
+]

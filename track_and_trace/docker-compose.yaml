@@ -39,6 +39,7 @@ services:
       - VALIDATOR_URL=tcp://validator:4004
       - DB_HOST=rethink
       - SERVER=http://server:3000
+      - GRID=http://gridd:8080
       - 'http_proxy=${http_proxy}'
       - 'https_proxy=${https_proxy}'
       - 'no_proxy=rest-api,server,eth0,validator,${no_proxy}'
@@ -50,12 +51,9 @@ services:
           sawtooth keygen &&
           cd server/ &&
           npm run init &&
-          npm run make-asset &&
-          npm run make-fish &&
-          npm run seed-sample-assets &&
-          npm run seed-sample-fish &&
           cd -
         fi;
+        cd asset_client/ && npm run seed-schema && cd - &&
         tail -f /dev/null
       "
 

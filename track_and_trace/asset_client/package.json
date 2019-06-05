@@ -5,7 +5,8 @@
   "main": "",
   "scripts": {
     "generate-proto-files": "node scripts/generate_proto_json.js > src/generated_protos.json",
-    "watch": "npm run generate-proto-files && webpack-dev-server --hot",
+    "seed-schema": "node ./scripts/seed_core_types.js",
+    "watch": "npm run generate-proto-files && webpack-dev-server --hot && npm run seed-schema",
     "build": "npm run generate-proto-files && webpack --env production",
     "test": "standard src/**/*.js"
   },
@@ -39,6 +40,7 @@
     "postcss-loader": "^2.0.6",
     "precss": "^2.0.0",
     "protobufjs": "^6.8.0",
+    "request-promise-native": "^1.0.7",
     "sass-loader": "^6.0.6",
     "standard": "^10.0.3",
     "style-loader": "^0.18.2",

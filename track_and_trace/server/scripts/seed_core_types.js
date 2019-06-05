@@ -34,7 +34,22 @@ const types = require(`./${DATA}`)
 protos.compile()
   .then(awaitServerPubkey)
   .then(batcherPublicKey => getTxnCreator(null, batcherPublicKey))
+  .then(({createTxn, signer, signerPublicKey}) => {
+    const typePayloads = types.map(type => {
+      return encodeTimestampedPayload({
+        action: protos.SchemaPayload.Action.SCHEMA_CREATE,
+        createSchema: protos.SchemaCreateAction.create({
+          schema_name: type.name,
+          properties: [...type.properties]
+        })
+      })
+    })
+
+    const txns = typePayloads.map(payload => createTxn(payload))
+    return submitTxns(txns, signer, signerPublicKey)
+  })
   .catch(err => {
+    console.log("error in protos compile")
     console.error(err.toString())
     process.exit()
   })
