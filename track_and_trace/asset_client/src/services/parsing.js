@@ -18,7 +18,8 @@
 
 const _ = require('lodash')
 const moment = require('moment')
-const { FLOAT_PRECISION } = require('./payloads')
+
+const FLOAT_PRECISION = 1000000
 
 const STRINGIFIERS = {
   LOCATION: v => `${v.latitude}, ${v.longitude}`,

@@ -22,8 +22,12 @@ const _getProp = (record, propName) => {
 
 const getPropertyValue = (record, propName, defaultValue = null) => {
   let prop = _getProp(record, propName)
-  if (prop && prop.value) {
-    return prop.value
+  if (prop) {
+    if (prop.updates.length > 0) {
+      return prop.updates[prop.updates.length -1].value
+    } else if (prop.value && prop.value.value) {
+      return prop.value.value
+    }
   } else {
     return defaultValue
   }
@@ -53,16 +57,21 @@ const _getPropTimeByComparison = (compare) => (record) => {
 const getLatestPropertyUpdateTime =
   _getPropTimeByComparison((selected, timestamp) => selected < timestamp)
 
-const getOldestPropertyUpdateTime =
-  _getPropTimeByComparison((selected, timestamp) => selected > timestamp)
+const getOldestPropertyUpdateTime = (record) => {
+  return record.properties[0].updates[0].timestamp
+}
+
+const getLatestUpdateTime = (record) => {
+  let updates = []
+  record.properties.forEach((property) => {
+    updates.push(property.value.timestamp)
+  })
+  return Math.max(...updates)
+}
 
 const countPropertyUpdates = (record) => {
-  if (!record.updates.properties) {
-    return 0
-  }
-
-  return Object.values(record.updates.properties).reduce(
-    (sum, updates) => sum + updates.length, 0)
+  return Object.values(record.properties).reduce(
+    (sum, properties) => sum + properties.updates.length, 0) - record.properties.length
 }
 
 module.exports = {
@@ -70,5 +79,6 @@ module.exports = {
   isReporter,
   getLatestPropertyUpdateTime,
   getOldestPropertyUpdateTime,
+  getLatestUpdateTime,
   countPropertyUpdates
 }

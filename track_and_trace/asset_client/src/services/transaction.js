@@ -24,7 +24,7 @@ const { SabrePayload, ExecuteContractAction } = require('../protobuf')
 
 const addressing = require('../utils/addressing')
 
-const createTransaction = (payloadInfo, signer, family) => {
+const createTransaction = (payloadInfo, signer, family, contracts) => {
     let { payloadBytes, inputs, outputs } = payloadInfo
     let pubkey = signer.getPublicKey().asHex()
 
@@ -42,6 +42,10 @@ const createTransaction = (payloadInfo, signer, family) => {
             family = addressing.tntFamily
     }
 
+    if (!contracts || contracts.length === 0) {
+        contracts = [family]
+    }
+
     const executeContractAction = ExecuteContractAction.create({
         name: family.name,
         version: family.version,
@@ -56,8 +60,8 @@ const createTransaction = (payloadInfo, signer, family) => {
     }).finish()
 
     var inputAddresses = [
-        addressing.computeContractRegistryAddress(family.name),
-        addressing.computeContractAddress(family.name, family.version)
+        ...addressing.computeContractRegistryAddresses(contracts),
+        ...addressing.computeContractAddresses(contracts)
     ]
 
     inputs.forEach(function(input) {
@@ -66,8 +70,8 @@ const createTransaction = (payloadInfo, signer, family) => {
     inputAddresses = inputAddresses.concat(inputs)
 
     var outputAddresses = [
-        addressing.computeContractRegistryAddress(family.name),
-        addressing.computeContractAddress(family.name, family.version)
+        ...addressing.computeContractRegistryAddresses(contracts),
+        ...addressing.computeContractAddresses(contracts)
     ]
 
     outputs.forEach(function(output) {
