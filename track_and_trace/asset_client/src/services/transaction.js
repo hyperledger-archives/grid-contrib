@@ -1,13 +1,19 @@
 const m = require('mithril')
 const { createHash } = require('crypto')
-const { Transaction, TransactionHeader, Batch, BatchHeader, BatchList } = require('sawtooth-sdk/protobuf')
+const { Transaction,
+        TransactionHeader,
+        Batch,
+        BatchHeader,
+        BatchList } = require('sawtooth-sdk/protobuf')
+
+const { SabrePayload, ExecuteContractAction } = require('../protobuf')
 
 const addressing = require('../utils/addressing')
 
 const createTransaction = (payloadInfo, signer, family) => {
     let { payloadBytes, inputs, outputs } = payloadInfo
     let pubkey = signer.getPublicKey().asHex()
-    
+
     switch (family) {
         case 'pike':
             family = addressing.pikeFamily
@@ -118,7 +124,7 @@ const _formStatusUrl = (url) => {
     return `/grid/batch_statuses?${id}`
 }
 
-const _waitForCommit = (transactionIds, statusUrl) => 
+const _waitForCommit = (transactionIds, statusUrl) =>
     m.request({
         url: `${_formStatusUrl(statusUrl)}&wait=60`,
         method: 'GET'
@@ -129,7 +135,9 @@ const _waitForCommit = (transactionIds, statusUrl) =>
             if (batch_result.status === 'COMMITTED') {
                 return Promise.resolve(transactionIds)
             } else if (batch_result.status === 'INVALID') {
-                let transaction_result = batch_result.invalid_transactions.find((txn) => transactionIds.includes(txn.id))
+                let transaction_result = batch_result
+                    .invalid_transactions
+                    .find((txn) => transactionIds.includes(txn.id))
                 if (transaction_result) {
                     return Promise.reject(transaction_result.message)
                 } else {
