@@ -18,16 +18,49 @@ const createTransaction = (payloadInfo, signer, family) => {
         default:
             family = addressing.tntFamily
     }
-    
+
+    const executeContractAction = ExecuteContractAction.create({
+        name: family.name,
+        version: family.version,
+        inputs: inputs,
+        outputs: outputs,
+        payload: payloadBytes,
+    })
+
+    const sabrePayloadBytes = SabrePayload.encode({
+        action: SabrePayload.Action.EXECUTE_CONTRACT,
+        executeContract: executeContractAction,
+    }).finish()
+
+    var inputAddresses = [
+        addressing.computeContractRegistryAddress(family.name),
+        addressing.computeContractAddress(family.name, family.version)
+    ]
+
+    inputs.forEach(function(input) {
+        inputAddresses.push(addressing.computeNamespaceRegistryAddress(input))
+    })
+    inputAddresses = inputAddresses.concat(inputs)
+
+    var outputAddresses = [
+        addressing.computeContractRegistryAddress(family.name),
+        addressing.computeContractAddress(family.name, family.version)
+    ]
+
+    outputs.forEach(function(output) {
+        outputAddresses.push(addressing.computeNamespaceRegistryAddress(output))
+    })
+    outputAddresses = outputAddresses.concat(outputs)
+
     const transactionHeaderBytes = TransactionHeader.encode({
-        familyName: family.name,
-        familyVersion: family.version,
-        inputs,
-        outputs,
+        familyName: addressing.sabreFamily.name,
+        familyVersion: addressing.sabreFamily.version,
+        inputs: inputAddresses,
+        outputs: outputAddresses,
         signerPublicKey: pubkey,
         batcherPublicKey: pubkey,
         dependencies: [],
-        payloadSha512: createHash('sha512').update(payloadBytes).digest('hex')
+        payloadSha512: createHash('sha512').update(sabrePayloadBytes).digest('hex')
     }).finish()
 
     let signature = signer.sign(transactionHeaderBytes)
@@ -35,7 +68,7 @@ const createTransaction = (payloadInfo, signer, family) => {
     return Transaction.create({
         header: transactionHeaderBytes,
         headerSignature: signature,
-        payload: payloadBytes
+        payload: sabrePayloadBytes
     })
 }
 
