@@ -11,7 +11,7 @@ const getAgents = () =>
         url: '/grid/agent'
     })
 
-const fetchAgent = (public_key) => 
+const fetchAgent = (public_key) =>
     m.request({
         method: 'GET',
         url: `/grid/agent/${public_key}`
@@ -21,7 +21,7 @@ const CreateAgentTransaction = (name, org_id, signer) => {
     if (!signer) {
         throw new Error('A signer must be provided')
     }
-    
+
     let createAgent = CreateAgentAction.create({
         orgId: (org_id === '' ? '000000000': org_id),
         publicKey: signer.getPublicKey().asHex(),
