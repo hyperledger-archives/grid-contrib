@@ -11,7 +11,7 @@ const getOrganizations = () =>
         url: '/grid/organization'
     })
 
-const fetchOrganization = (id) => 
+const fetchOrganization = (id) =>
     m.request({
         method: 'GET',
         url: `/grid/organization/${id}`
@@ -21,7 +21,7 @@ const CreateOrganizationTransaction = (id, name, address, signer, metadata) => {
     if (!signer) {
         throw new Error('A signer must be provided')
     }
-    
+
     let createOrganization = CreateOrganizationAction.create({
         id,
         name,
