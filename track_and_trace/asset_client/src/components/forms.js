@@ -137,20 +137,20 @@ const MultiSelect = {
           m('.dropdown-divider'),
           vnode.attrs.options.map(
             ([value, label]) =>
-             m("a.dropdown-item[href='#']", {
-               onclick: (e) => {
-                 e.preventDefault()
+              m("a.dropdown-item[href='#']", {
+                onclick: (e) => {
+                  e.preventDefault()
 
-                 let setLocation = selected.indexOf(value)
-                 if (setLocation >= 0) {
-                   selected.splice(setLocation, 1)
-                 } else {
-                   selected.push(value)
-                 }
+                  let setLocation = selected.indexOf(value)
+                  if (setLocation >= 0) {
+                    selected.splice(setLocation, 1)
+                  } else {
+                    selected.push(value)
+                  }
 
-                 handleChange(selected)
-               }
-             }, label, (selected.indexOf(value) > -1 ? ' \u2714' : '')))))
+                  handleChange(selected)
+                }
+              }, label, (selected.indexOf(value) > -1 ? ' \u2714' : '')))))
     ]
   }
 }

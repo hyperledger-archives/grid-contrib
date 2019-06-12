@@ -87,7 +87,7 @@ const AgentSignUp = {
     if (!AgentSignUp.username ||
         AgentSignUp.password !== AgentSignUp.passwordConfirm ||
         !AgentSignUp.name) {
-          return true
+      return true
     }
 
     return false
@@ -104,28 +104,28 @@ const AgentSignupForm = {
   view() {
     return [
       m('.signup-form'),
-        m('form', [
-            AgentSignUp.error ? m('p.text-danger', AgentSignUp.error) : null,
-            m('legend', 'Create Agent'),
-            inputField('username', 'Email', AgentSignUp.username, AgentSignUp.setUsername),
-            inputField('password', 'Password', AgentSignUp.password, AgentSignUp.setPassword, 'password'),
-            inputField('passwordConfirm', 'Confirm Password', AgentSignUp.passwordConfirm, AgentSignUp.setPasswordConfirm, 'password'),
-            inputField('name', 'Name', AgentSignUp.name, AgentSignUp.setName),
-            inputField('organization', 'Organization', AgentSignUp.organization, AgentSignUp.setOrganization),
+      m('form', [
+        AgentSignUp.error ? m('p.text-danger', AgentSignUp.error) : null,
+        m('legend', 'Create Agent'),
+        inputField('username', 'Email', AgentSignUp.username, AgentSignUp.setUsername),
+        inputField('password', 'Password', AgentSignUp.password, AgentSignUp.setPassword, 'password'),
+        inputField('passwordConfirm', 'Confirm Password', AgentSignUp.passwordConfirm, AgentSignUp.setPasswordConfirm, 'password'),
+        inputField('name', 'Name', AgentSignUp.name, AgentSignUp.setName),
+        inputField('organization', 'Organization', AgentSignUp.organization, AgentSignUp.setOrganization),
 
-            m('.container.text-center',
-              m('a[href="/login"]',
-                { oncreate: m.route.link },
-                'login an existing Agent')),
-            m('.form-group',
-              m('.row.justify-content-end.align-items-end',
-                m('col-2',
-                  m('button.btn.btn-primary',
-                    {
-                      onclick: AgentSignUp.submit,
-                      disabled: AgentSignUp.submitting || AgentSignUp.invalid(),
-                    }, 'Create Agent'))))
-        ])
+        m('.container.text-center',
+          m('a[href="/login"]',
+            { oncreate: m.route.link },
+            'login an existing Agent')),
+        m('.form-group',
+          m('.row.justify-content-end.align-items-end',
+            m('col-2',
+              m('button.btn.btn-primary',
+                {
+                  onclick: AgentSignUp.submit,
+                  disabled: AgentSignUp.submitting || AgentSignUp.invalid(),
+                }, 'Create Agent'))))
+      ])
     ]
   }
 }

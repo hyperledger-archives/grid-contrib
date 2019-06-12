@@ -162,12 +162,12 @@ const clearPrivateKey = () => {
  */
 const getPrivateKey = () => {
   return Promise.resolve()
-  .then(() => {
-    if (privateKey) return privateKey.asHex()
-    const encryptedKey = window.localStorage.getItem(ENCRYPTED_KEY)
-    return requestPassword()
-      .then(password => sjcl.decrypt(password, encryptedKey))
-  })
+    .then(() => {
+      if (privateKey) return privateKey.asHex()
+      const encryptedKey = window.localStorage.getItem(ENCRYPTED_KEY)
+      return requestPassword()
+        .then(password => sjcl.decrypt(password, encryptedKey))
+    })
 }
 
 /**

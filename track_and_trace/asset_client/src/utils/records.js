@@ -44,10 +44,10 @@ const _getPropTimeByComparison = (compare) => (record) => {
   }
 
   return Object.values(record.updates.properties)
-      .reduce((acc, updates) => acc.concat(updates), [])
-      .reduce((selected, update) =>
-              compare(selected.timestamp, update.timestamp) ? update : selected)
-      .timestamp
+    .reduce((acc, updates) => acc.concat(updates), [])
+    .reduce((selected, update) =>
+      compare(selected.timestamp, update.timestamp) ? update : selected)
+    .timestamp
 }
 
 const getLatestPropertyUpdateTime =

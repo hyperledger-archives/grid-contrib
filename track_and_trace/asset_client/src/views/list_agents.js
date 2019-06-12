@@ -59,8 +59,8 @@ const AgentList = {
             'Roles'
           ],
           rows: vnode.state.filteredAgents.slice(
-              vnode.state.currentPage * PAGE_SIZE,
-              (vnode.state.currentPage + 1) * PAGE_SIZE)
+            vnode.state.currentPage * PAGE_SIZE,
+            (vnode.state.currentPage + 1) * PAGE_SIZE)
             .map((agent) => [
               m(`a[href=/agents/${agent.public_key}]`, { oncreate: m.route.link },
                 truncate(agent.public_key, { length: 32 })),

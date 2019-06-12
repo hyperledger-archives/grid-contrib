@@ -33,11 +33,11 @@ const Table = {
             vnode.attrs.headers.map((header) => m('th', header)))),
         m('tbody',
           vnode.attrs.rows.length > 0
-          ? vnode.attrs.rows
+            ? vnode.attrs.rows
               .map((row) =>
                 m('tr',
                   row.map((col) => m('td', col))))
-          : m('tr',
+            : m('tr',
               m('td.text-center', {colSpan: 5},
                 vnode.attrs.noRowsText))
         )

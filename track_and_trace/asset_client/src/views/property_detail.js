@@ -164,7 +164,7 @@ const PropertyDetailPage = {
 
     const updates = _.get(vnode.state, 'property.updates', [])
     const page = updates.slice(vnode.state.currentPage * PAGE_SIZE,
-                               (vnode.state.currentPage + 1) * PAGE_SIZE)
+      (vnode.state.currentPage + 1) * PAGE_SIZE)
 
     return [
       layout.title(`${name} of ${record}`),
@@ -184,8 +184,8 @@ const PropertyDetailPage = {
           rows: page.map(update => {
             return [
               parsing.stringifyValue(update.value,
-                                     vnode.state.property.dataType,
-                                     vnode.state.property.name),
+                vnode.state.property.dataType,
+                vnode.state.property.name),
               update.reporter.name,
               parsing.formatTimestamp(update.timestamp)
             ]

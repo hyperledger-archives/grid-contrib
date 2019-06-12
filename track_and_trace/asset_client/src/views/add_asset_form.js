@@ -116,7 +116,7 @@ const AddAssetForm = {
                   onblur: () => _updateReporters(vnode, i)
                 })),
 
-             m('.col-sm-4',
+              m('.col-sm-4',
                 m(forms.MultiSelect, {
                   label: 'Select Fields',
                   options: authorizableProperties,
