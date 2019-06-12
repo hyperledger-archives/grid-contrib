@@ -123,7 +123,7 @@ const AgentSignupForm = {
               m('button.btn.btn-primary',
                 {
                   onclick: AgentSignUp.submit,
-                  disabled: AgentSignUp.submitting || AgentSignUp.invalid(),
+                  disabled: AgentSignUp.submitting || AgentSignUp.invalid()
                 }, 'Create Agent'))))
       ])
     ]

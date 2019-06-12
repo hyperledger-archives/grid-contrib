@@ -123,7 +123,7 @@ const GetStartedForm = {
               m('button.btn.btn-primary',
                 {
                   onclick: GetStarted.submit,
-                  disabled: GetStarted.submitting || GetStarted.invalid(),
+                  disabled: GetStarted.submitting || GetStarted.invalid()
                 }, 'Submit'))))
       ])
     ]

@@ -13,5 +13,5 @@ const pluck = (obj, ...keys) => keys.reduce((o, k) => {
  * Merges objects, starting from left to right
  */
 module.exports = {
-  pluck,
+  pluck
 }

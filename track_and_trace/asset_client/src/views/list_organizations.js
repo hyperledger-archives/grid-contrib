@@ -37,7 +37,7 @@ const OrganizationList = {
         m(Table, {
           headers: [
             'ID',
-            'Address',
+            'Address'
           ],
           rows: vnode.state.filteredOrganizations.slice(
             vnode.state.currentPage * PAGE_SIZE,
@@ -60,7 +60,7 @@ const _controlButtons = (vnode) => {
       m(FilterGroup, {
         ariaLabel: 'Filter',
         filters: {
-          'All': () => { vnode.state.filteredOrganizations = vnode.state.organizations },
+          'All': () => { vnode.state.filteredOrganizations = vnode.state.organizations }
         },
         initialFilter: 'All'
       })),

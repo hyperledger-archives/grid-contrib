@@ -53,8 +53,8 @@ module.exports = {
   },
   sabreFamily: {
     name: SABRE_FAMILY_NAME,
-    version: SABRE_FAMILY_VERSION,
+    version: SABRE_FAMILY_VERSION
   },
   agentAddressPrefix: PIKE_NAMESPACE + PIKE_AGENT_SUBSPACE,
-  organizationAddressPrefix: PIKE_NAMESPACE + PIKE_ORG_SUBSPACE,
+  organizationAddressPrefix: PIKE_NAMESPACE + PIKE_ORG_SUBSPACE
 }

@@ -55,7 +55,7 @@ const CreateOrganizationTransaction = (id, name, address, signer, metadata) => {
   return transactionService.createTransaction({
     payloadBytes,
     inputs: [organizationAddress, agentAddress],
-    outputs: [organizationAddress, agentAddress],
+    outputs: [organizationAddress, agentAddress]
   }, signer, 'pike')
 }
 
@@ -67,5 +67,5 @@ module.exports = {
   createOrganization,
   CreateOrganizationTransaction,
   getOrganizations,
-  fetchOrganization,
+  fetchOrganization
 }

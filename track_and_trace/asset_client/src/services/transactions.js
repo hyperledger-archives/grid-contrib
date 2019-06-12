@@ -102,7 +102,7 @@ const createTxn = payload => {
     inputs: [fields.NAMESPACE],
     outputs: [fields.NAMESPACE],
     nonce: (Math.random() * 10 ** 18).toString(36),
-    payloadSha512: createHash('sha512').update(value).digest('hex'),
+    payloadSha512: createHash('sha512').update(value).digest('hex')
   }).finish()
 
   return Transaction.create({

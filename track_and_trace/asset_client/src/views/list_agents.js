@@ -85,7 +85,7 @@ const _controlButtons = (vnode, publicKey) => {
         m(FilterGroup, {
           ariaLabel: 'Filter Based on Ownership',
           filters: {
-            'All': () => { vnode.state.filteredAgents = vnode.state.agents },
+            'All': () => { vnode.state.filteredAgents = vnode.state.agents }
           },
           initialFilter: 'All'
         })),

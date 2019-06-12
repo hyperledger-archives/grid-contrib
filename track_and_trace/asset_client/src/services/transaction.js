@@ -44,12 +44,12 @@ const createTransaction = (payloadInfo, signer, family) => {
     version: family.version,
     inputs: inputs,
     outputs: outputs,
-    payload: payloadBytes,
+    payload: payloadBytes
   })
 
   const sabrePayloadBytes = SabrePayload.encode({
     action: SabrePayload.Action.EXECUTE_CONTRACT,
-    executeContract: executeContractAction,
+    executeContract: executeContractAction
   }).finish()
 
   var inputAddresses = [
@@ -98,7 +98,7 @@ const submitBatch = (transactions, signer) => {
 
   const batchHeaderBytes = BatchHeader.encode({
     signerPublicKey: pubkey,
-    transactionIds,
+    transactionIds
   }).finish()
 
   let signature = signer.sign(batchHeaderBytes)
@@ -165,5 +165,5 @@ const _waitForCommit = (transactionIds, statusUrl) =>
 module.exports = {
   submitBatch,
   submitTransaction,
-  createTransaction,
+  createTransaction
 }

@@ -51,8 +51,8 @@ const inputField = (name, label, value, oninput, type = 'text') =>
       oninput: m.withAttr('value', oninput),
       value,
       type,
-      name,
-    }),
+      name
+    })
   ])
 
 /**
@@ -119,7 +119,7 @@ const MultiSelect = {
       m('.dropdown',
         m(`button.btn.btn-${color}.btn-block.dropdown-toggle.text-left`,
           {
-            'data-toggle': 'dropdown',
+            'data-toggle': 'dropdown'
           }, vnode.attrs.label),
         m('.dropdown-menu.w-100',
           m("a.dropdown-item[href='#']", {
