@@ -78,7 +78,7 @@ const createTxn = payload => {
       family = (payload.family ? payload.family : TNT_FAMILY.NAME)
     } else {
       throw new PayloadError(`Payloads should be in the form { family: String, payload: Uint8Array }.`)
-    } 
+    }
   }
   else {
     value = payload
@@ -93,7 +93,7 @@ const createTxn = payload => {
     default:
       fields = TNT_FAMILY
   }
-  
+
   const header = TransactionHeader.encode({
     signerPublicKey,
     batcherPublicKey: signerPublicKey,

@@ -125,7 +125,7 @@ const encode = (actionKey, actionData) => {
         [actionKey]: action.proto.create(action.xform(actionData))
       }).finish()
   }
-  
+
   return payload
 }
 
