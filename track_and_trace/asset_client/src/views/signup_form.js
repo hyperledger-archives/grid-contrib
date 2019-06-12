@@ -52,7 +52,7 @@ const AgentSignUp = {
   },
 
   submit: () => {
-    AgentSignUp.submitting = true,
+    AgentSignUp.submitting = true
     authService.createUser(AgentSignUp, (signer) => agentService.createAgent(AgentSignUp.name, AgentSignUp.organization, signer))
       .then(() => {
         AgentSignUp.clear()
@@ -66,7 +66,7 @@ const AgentSignUp = {
   },
 
   clear: () => {
-    AgentSignUp.submitting = false,
+    AgentSignUp.submitting = false
     AgentSignUp.error = null
 
     AgentSignUp.username = ''

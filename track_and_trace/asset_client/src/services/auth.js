@@ -66,10 +66,10 @@ const requestPassword = () => {
 }
 
 const displaySuccessDialog = () => {
-  modals.StatusModal, {
+  return modals.show(modals.StatusModal, {
     title: 'Success',
     body: 'User updated successfully!'
-  }
+  })
 }
 
 const AuthService = {
