@@ -41,7 +41,7 @@ const CreateOrganizationTransaction = (id, name, address, signer, metadata) => {
     name,
     address,
     metadata: [
-      {...metadata}
+      { ...metadata }
     ]
   })
   let payloadBytes = PikePayload.encode({

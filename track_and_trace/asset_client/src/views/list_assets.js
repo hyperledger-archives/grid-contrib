@@ -18,10 +18,10 @@
 
 const m = require('mithril')
 const truncate = require('lodash/truncate')
-const {Table, FilterGroup, PagingButtons} = require('../components/tables')
+const { Table, FilterGroup, PagingButtons } = require('../components/tables')
 const api = require('../services/api')
 const { formatTimestamp } = require('../services/parsing')
-const {getPropertyValue, getLatestPropertyUpdateTime, getOldestPropertyUpdateTime, countPropertyUpdates} = require('../utils/records')
+const { getPropertyValue, getLatestPropertyUpdateTime, getOldestPropertyUpdateTime, countPropertyUpdates } = require('../utils/records')
 
 const PAGE_SIZE = 50
 

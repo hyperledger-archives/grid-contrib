@@ -167,7 +167,7 @@ const AuthService = {
 
     let encryptedPrivateKey = sjcl.encrypt(password, privateKey.asHex())
 
-    return Promise.resolve({signer, encryptedPrivateKey})
+    return Promise.resolve({ signer, encryptedPrivateKey })
   },
 
   signOut: () => {
@@ -236,7 +236,7 @@ const AuthService = {
   createUser: (user, submitTransactionFn) => {
     let userCreate = pluck(user, 'username', 'password', 'email', 'name')
     return AuthService.createSigner(userCreate.password)
-      .then(({signer, encryptedPrivateKey}) => {
+      .then(({ signer, encryptedPrivateKey }) => {
         userCreate.publicKey = signer.getPublicKey().asHex()
         userCreate.encryptedPrivateKey = encryptedPrivateKey
         userCreate.email = userCreate.email

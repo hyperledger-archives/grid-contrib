@@ -54,7 +54,7 @@ const scActionMap = SC_ACTIONS.reduce((map, enumName) => {
 const pikeActionMap = PIKE_ACTIONS.reduce((map, enumName) => {
   const key = enumName[0].toLowerCase() + titleify(enumName).slice(1)
   const className = titleify(enumName) + 'Action'
-  return _.set(map, key, {enum: enumName, name: className })
+  return _.set(map, key, { enum: enumName, name: className })
 }, {})
 
 // Compile Protobufs

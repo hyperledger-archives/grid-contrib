@@ -96,7 +96,7 @@ const validator = (predicate, message, id = null) => e => {
  * Triggers a download of a dynamically created text file
  */
 const triggerDownload = (name, ...contents) => {
-  const file = new window.Blob(contents, {type: 'text/plain'})
+  const file = new window.Blob(contents, { type: 'text/plain' })
   const href = window.URL.createObjectURL(file)
   const container = document.getElementById('download-container')
   m.render(container, m('a#downloader', { href, download: name }))

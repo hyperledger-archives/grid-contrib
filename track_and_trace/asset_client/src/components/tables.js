@@ -38,7 +38,7 @@ const Table = {
                 m('tr',
                   row.map((col) => m('td', col))))
             : m('tr',
-              m('td.text-center', {colSpan: 5},
+              m('td.text-center', { colSpan: 5 },
                 vnode.attrs.noRowsText))
         )
       )

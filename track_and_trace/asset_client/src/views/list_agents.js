@@ -19,7 +19,7 @@
 const m = require('mithril')
 const sortBy = require('lodash/sortBy')
 const truncate = require('lodash/truncate')
-const {Table, FilterGroup, PagingButtons} = require('../components/tables.js')
+const { Table, FilterGroup, PagingButtons } = require('../components/tables.js')
 const api = require('../services/api')
 const agents = require('../services/agents')
 

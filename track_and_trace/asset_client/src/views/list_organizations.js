@@ -43,7 +43,7 @@ const OrganizationList = {
             (vnode.state.currentPage + 1) * PAGE_SIZE)
             .map((organization) => [
               m(`a[href=/organizations/${organization.org_id}]`, { oncreate: m.route.link },
-                truncate(organization.org_id, { length: 32})),
+                truncate(organization.org_id, { length: 32 })),
               organization.address
             ]),
           noRowsText: 'No organizations found'

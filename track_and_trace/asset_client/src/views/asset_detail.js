@@ -20,7 +20,7 @@ const m = require('mithril')
 const moment = require('moment')
 const truncate = require('lodash/truncate')
 
-const {MultiSelect} = require('../components/forms')
+const { MultiSelect } = require('../components/forms')
 const payloads = require('../services/payloads')
 const parsing = require('../services/parsing')
 const transactions = require('../services/transactions')
@@ -99,7 +99,7 @@ const ROLE_TO_ENUM = {
 
 const TransferControl = {
   view (vnode) {
-    let {record, agents, publicKey, role, label} = vnode.attrs
+    let { record, agents, publicKey, role, label } = vnode.attrs
     if (record.final) {
       return null
     }
@@ -153,7 +153,7 @@ const _hasProposal = (record, receivingAgent, role) =>
 
 const ReporterControl = {
   view (vnode) {
-    let {record, agents, publicKey} = vnode.attrs
+    let { record, agents, publicKey } = vnode.attrs
     if (record.final) {
       return null
     }
