@@ -86,7 +86,7 @@ const createTxn = payload => {
   }
 
   let fields
-  switch(family) {
+  switch (family) {
     case PIKE_FAMILY.NAME:
       fields = PIKE_FAMILY
       break
