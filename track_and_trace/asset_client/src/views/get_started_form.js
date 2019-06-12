@@ -100,10 +100,10 @@ const GetStarted = {
  * Get Started Form
  */
 const GetStartedForm = {
-  oninit() {
+  oninit () {
     GetStarted.clear()
   },
-  view() {
+  view () {
     return [
       m('.get-started-form'),
       m('form', [

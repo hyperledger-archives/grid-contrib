@@ -16,29 +16,29 @@ const SABRE_NAMESPACE_REGISTRY_PREFIX  = "00ec00"
 const SABRE_CONTRACT_REGISTRY_PREFIX = "00ec01"
 const SABRE_CONTRACT_PREFIX = "00ec02"
 
-function hash(object, num) {
+function hash (object, num) {
   let sha = crypto.createHash("sha512")
   return sha.update(object).digest("hex").substring(0, num)
 }
 
 module.exports = {
-  computeContractRegistryAddress(name) {
+  computeContractRegistryAddress (name) {
     return SABRE_CONTRACT_REGISTRY_PREFIX + hash(name, 64)
   },
-  computeContractAddress(name, version) {
+  computeContractAddress (name, version) {
     return SABRE_CONTRACT_PREFIX + hash(name + "," + version, 64)
   },
-  computeNamespaceRegistryAddress(namespace) {
+  computeNamespaceRegistryAddress (namespace) {
     let prefix = namespace.substring(0, 6)
     return SABRE_NAMESPACE_REGISTRY_PREFIX + hash(prefix, 64)
   },
-  getTntFamilyNamespacePrefix() {
+  getTntFamilyNamespacePrefix () {
     return TNT_NAMESPACE
   },
-  makeAgentAddress(agentPublicKey) {
+  makeAgentAddress (agentPublicKey) {
     return PIKE_NAMESPACE + PIKE_AGENT_SUBSPACE + hash(agentPublicKey, 62)
   },
-  makeOrganizationAddress(organizationId) {
+  makeOrganizationAddress (organizationId) {
     return PIKE_NAMESPACE + PIKE_ORG_SUBSPACE + hash(organizationId, 62)
   },
   pikeFamily: {

@@ -57,7 +57,7 @@ const createTransaction = (payloadInfo, signer, family) => {
     addressing.computeContractAddress(family.name, family.version)
   ]
 
-  inputs.forEach(function(input) {
+  inputs.forEach(function (input) {
     inputAddresses.push(addressing.computeNamespaceRegistryAddress(input))
   })
   inputAddresses = inputAddresses.concat(inputs)
@@ -67,7 +67,7 @@ const createTransaction = (payloadInfo, signer, family) => {
     addressing.computeContractAddress(family.name, family.version)
   ]
 
-  outputs.forEach(function(output) {
+  outputs.forEach(function (output) {
     outputAddresses.push(addressing.computeNamespaceRegistryAddress(output))
   })
   outputAddresses = outputAddresses.concat(outputs)

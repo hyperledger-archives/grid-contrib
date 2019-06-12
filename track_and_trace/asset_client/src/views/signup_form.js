@@ -91,10 +91,10 @@ const AgentSignUp = {
  * Agent Sign Up Form
  */
 const AgentSignupForm = {
-  oninit() {
+  oninit () {
     AgentSignUp.clear()
   },
-  view() {
+  view () {
     return [
       m('.signup-form'),
       m('form', [

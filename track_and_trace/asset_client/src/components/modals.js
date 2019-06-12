@@ -67,7 +67,7 @@ const BasicModal = {
 }
 
 const StatusModal = {
-  view(vnode) {
+  view (vnode) {
     const cancelFn = vnode.attrs.cancelFn || _noop
 
     return m('.modal.fade#modal', {
