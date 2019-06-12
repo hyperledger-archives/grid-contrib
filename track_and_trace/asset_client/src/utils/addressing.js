@@ -1,4 +1,4 @@
-const crypto = require("crypto")
+const crypto = require('crypto')
 
 const TNT_FAMILY_NAME = 'grid_track_and_trace'
 const TNT_FAMILY_VERSION = '1.0'
@@ -10,15 +10,15 @@ const PIKE_NAMESPACE = 'cad11d'
 const PIKE_AGENT_SUBSPACE = '00'
 const PIKE_ORG_SUBSPACE = '01'
 
-const SABRE_FAMILY_NAME = "sabre"
+const SABRE_FAMILY_NAME = 'sabre'
 const SABRE_FAMILY_VERSION = '0.3'
-const SABRE_NAMESPACE_REGISTRY_PREFIX  = "00ec00"
-const SABRE_CONTRACT_REGISTRY_PREFIX = "00ec01"
-const SABRE_CONTRACT_PREFIX = "00ec02"
+const SABRE_NAMESPACE_REGISTRY_PREFIX  = '00ec00'
+const SABRE_CONTRACT_REGISTRY_PREFIX = '00ec01'
+const SABRE_CONTRACT_PREFIX = '00ec02'
 
 function hash (object, num) {
-  let sha = crypto.createHash("sha512")
-  return sha.update(object).digest("hex").substring(0, num)
+  let sha = crypto.createHash('sha512')
+  return sha.update(object).digest('hex').substring(0, num)
 }
 
 module.exports = {
@@ -26,7 +26,7 @@ module.exports = {
     return SABRE_CONTRACT_REGISTRY_PREFIX + hash(name, 64)
   },
   computeContractAddress (name, version) {
-    return SABRE_CONTRACT_PREFIX + hash(name + "," + version, 64)
+    return SABRE_CONTRACT_PREFIX + hash(name + ',' + version, 64)
   },
   computeNamespaceRegistryAddress (namespace) {
     let prefix = namespace.substring(0, 6)

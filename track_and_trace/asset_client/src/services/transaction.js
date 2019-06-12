@@ -117,7 +117,7 @@ const submitBatch = (transactions, signer) => {
     method: 'POST',
     url: '/grid/batches',
     data: batchListBytes,
-    headers: { "Content-Type": "application/octet-stream" },
+    headers: { 'Content-Type': 'application/octet-stream' },
     serialize: x => x
   })
     .then((result) =>

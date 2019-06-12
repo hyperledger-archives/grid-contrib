@@ -29,7 +29,7 @@ const CreateAgentTransaction = (name, orgId, signer) => {
     roles:[],
     metadata: [
       {
-        "name": name
+        'name': name
       }
     ]
   })
