@@ -17,13 +17,6 @@
 'use strict'
 
 const m = require('mithril')
-const _ = require('lodash')
-
-const forms = require('../components/forms')
-const api = require('../services/api')
-const transactions = require('../services/transactions')
-const payloads = require('../services/payloads')
-const PIKE_FAMILY_NAME = 'pike'
 
 const { inputField } = require('../components/forms')
 const authService = require('../services/auth')

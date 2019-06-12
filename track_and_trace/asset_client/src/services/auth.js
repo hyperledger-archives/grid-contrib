@@ -56,8 +56,7 @@ const _sessionStoreRemove= (key) => {
 }
 
 const requestPassword = () => {
-  let password = null
-    
+
   return modals.show(modals.BasicModal, {
     title: 'Enter Password',
     body: '',
@@ -231,7 +230,7 @@ const AuthService = {
 
   /**
      * Creates a user then submits a transaction to the blockchain
-     * 
+     *
      * The function is a (Signer) => Promise, where the promise is resolved when the transaction completes
      */
   createUser: (user, submitTransactionFn) => {
@@ -241,7 +240,7 @@ const AuthService = {
         userCreate.publicKey = signer.getPublicKey().asHex()
         userCreate.encryptedPrivateKey = encryptedPrivateKey
         userCreate.email = userCreate.email
-                
+
         return m.request({
           method: 'POST',
           url: 'api/users',
