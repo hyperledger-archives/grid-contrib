@@ -79,8 +79,7 @@ const createTxn = payload => {
     } else {
       throw new PayloadError(`Payloads should be in the form { family: String, payload: Uint8Array }.`)
     }
-  }
-  else {
+  } else {
     value = payload
     family = TNT_FAMILY.NAME
   }
