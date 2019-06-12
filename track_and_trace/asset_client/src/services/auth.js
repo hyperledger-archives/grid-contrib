@@ -56,7 +56,6 @@ const _sessionStoreRemove= (key) => {
 }
 
 const requestPassword = () => {
-
   return modals.show(modals.BasicModal, {
     title: 'Enter Password',
     body: '',

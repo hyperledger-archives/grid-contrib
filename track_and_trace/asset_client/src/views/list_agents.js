@@ -76,7 +76,6 @@ const AgentList = {
 
 const _controlButtons = (vnode, publicKey) => {
   if (publicKey) {
-
     return [
       m('.col-sm-8',
         m(FilterGroup, {
