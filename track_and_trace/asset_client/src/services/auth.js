@@ -57,12 +57,12 @@ const _sessionStoreRemove= (key) => {
 
 const requestPassword = () => {
     let password = null
-    
+
     return modals.show(modals.BasicModal, {
         title: 'Enter Password',
         body: '',
         acceptText: 'Submit',
-        acceptFn: authenticate()
+        acceptFn: AuthService.authenticate()
     })
 }
 
@@ -102,7 +102,7 @@ const AuthService = {
     },
 
     getUserData: () => new Promise((resolve, reject) => {
-        let userStr = _localStoreGet(STORE_USER)
+        let userStr = localStorage.getItem(`${AuthService.namespace}/${STORE_USER}`)
         if (!userStr) {
             reject('No user data available. Please log in')
             return
@@ -134,7 +134,7 @@ const AuthService = {
             return Promise.resolve(_authStore_cachedSigner)
         }
 
-        let sessionStoredKey = _sessionStoreGet(STORE_PRIVATE_KEY)
+        let sessionStoredKey = sessionStorage.getItem(`${AuthService.namespace}/${STORE_PRIVATE_KEY}`)
         if (sessionStoredKey) {
             let signer = CRYPTO_FACTORY.newSigner(Secp256k1PrivateKey.fromHex(sessionStoredKey))
             _authStore_cachedSigner = signer
@@ -204,7 +204,7 @@ const AuthService = {
     },
 
     updateUser: (update, signer) => {
-        let userUpdate = pluck(update, 'username', 'old_password', 'password', 'encryptedPrivateKey')
+        let userUpdate = pluck(update, 'email', 'old_password', 'password', 'encryptedPrivateKey')
         let updatedEncryptedKey = sjcl.encrypt(update.password, signer._privateKey.asHex())
         userUpdate.encryptedPrivateKey = updatedEncryptedKey
         let public_key = update.public_key
@@ -231,17 +231,16 @@ const AuthService = {
 
     /**
      * Creates a user then submits a transaction to the blockchain
-     * 
+     *
      * The function is a (Signer) => Promise, where the promise is resolved when the transaction completes
      */
     createUser: (user, submitTransactionFn) => {
-        let userCreate = pluck(user, 'username', 'password', 'email', 'name')
+        let userCreate = pluck(user, 'password', 'email')
         return AuthService.createSigner(userCreate.password)
             .then(({signer, encryptedPrivateKey}) => {
                 userCreate.publicKey = signer.getPublicKey().asHex()
                 userCreate.encryptedPrivateKey = encryptedPrivateKey
                 userCreate.email = userCreate.email
-                
                 return m.request({
                     method: 'POST',
                     url: 'api/users',

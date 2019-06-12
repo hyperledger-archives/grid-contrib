@@ -19,7 +19,7 @@
 const _ = require('lodash')
 const db = require('../db/agents')
 
-const FILTER_KEYS = ['name', 'publicKey']
+const FILTER_KEYS = ['email', 'publicKey']
 
 const list = params => db.list(_.pick(params, FILTER_KEYS))
 
