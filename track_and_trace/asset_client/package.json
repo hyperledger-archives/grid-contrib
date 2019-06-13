@@ -35,6 +35,12 @@
   "devDependencies": {
     "autoprefixer": "^7.1.2",
     "css-loader": "^0.28.5",
+    "eslint": "^5.16.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-promise": "^4.1.1",
+    "eslint-plugin-standard": "^4.0.0",
     "node-sass": "^4.5.3",
     "postcss-loader": "^2.0.6",
     "precss": "^2.0.0",
