@@ -23,7 +23,7 @@ const CreateAgentTransaction = (name, orgId, signer) => {
   }
 
   let createAgent = CreateAgentAction.create({
-    orgId: (orgId === '' ? '000000000': orgId),
+    orgId: (orgId === '' ? '000000000' : orgId),
     publicKey: signer.getPublicKey().asHex(),
     active: true,
     roles:[],

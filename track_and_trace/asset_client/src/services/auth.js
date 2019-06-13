@@ -51,7 +51,7 @@ const _sessionStoreGet = (key) => {
   sessionStorage.getItem(`${AuthService.namespace}/${key}`)
 }
 
-const _sessionStoreRemove= (key) => {
+const _sessionStoreRemove = (key) => {
   sessionStorage.removeItem(`${AuthService.namespace}/${key}`)
 }
 
