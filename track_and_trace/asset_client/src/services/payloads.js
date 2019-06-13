@@ -118,6 +118,7 @@ const encode = (actionKey, actionData) => {
         timestamp: Math.floor(Date.now() / 1000),
         [actionKey]: action.proto.create(action.xform(actionData))
       }).finish()
+      break
     case 'Pike':
       payload = PikePayload.encode({
         action: PikePayload.Action[action.enum],
