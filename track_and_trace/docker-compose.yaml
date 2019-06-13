@@ -86,29 +86,6 @@ services:
       - 'no_proxy=rest-api,server,eth0,validator,${no_proxy}'
     entrypoint: node index.js
 
-  ledger-sync:
-    image: tnt-ledger-sync
-    container_name: tnt-ledger-sync
-    build:
-      context: ../grid-contrib/track_and_trace/
-      dockerfile: ledger_sync/Dockerfile
-      args:
-        - http_proxy
-        - https_proxy
-        - no_proxy
-    volumes:
-      - ../grid-contrib/track_and_trace/:/track_and_trace
-      - /track_and_trace/ledger_sync/node_modules
-    depends_on:
-      - validator
-      - rethink
-    environment:
-      - VALIDATOR_URL=tcp://validator:4004
-      - DB_HOST=rethink
-      - 'http_proxy=${http_proxy}'
-      - 'https_proxy=${https_proxy}'
-      - 'no_proxy=rest-api,server,eth0,validator,${no_proxy}'
-
   asset-client:
     image: tnt-asset-client
     container_name: tnt-asset-client
