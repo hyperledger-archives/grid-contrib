@@ -60,7 +60,7 @@ const requestPassword = () => {
     title: 'Enter Password',
     body: '',
     acceptText: 'Submit',
-    acceptFn: authenticate()
+    acceptFn: AuthService.authenticate
   })
 }
 
