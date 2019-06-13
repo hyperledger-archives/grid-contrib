@@ -238,7 +238,6 @@ const AuthService = {
       .then(({ signer, encryptedPrivateKey }) => {
         userCreate.publicKey = signer.getPublicKey().asHex()
         userCreate.encryptedPrivateKey = encryptedPrivateKey
-        userCreate.email = userCreate.email
 
         return m.request({
           method: 'POST',
