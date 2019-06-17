@@ -23,7 +23,7 @@ require('../styles/main.scss')
 const m = require('mithril')
 
 const api = require('./services/api')
-const transactions = require('./services/transactions')
+const auth = require('./services/auth')
 const navigation = require('./components/navigation')
 
 const AddFishForm = require('./views/add_fish_form')
@@ -34,7 +34,9 @@ const FishDetail = require('./views/fish_detail')
 const Dashboard = require('./views/dashboard')
 const LoginForm = require('./views/login_form')
 const PropertyDetailPage = require('./views/property_detail')
-const SignupForm = require('./views/signup_form')
+const GetStartedForm = require('./views/get_started_form')
+const OrganizationList = require('./views/list_organizations')
+const OrganizationDetailPage = require('./views/organization_detail')
 
 /**
  * A basic layout component that adds the navbar to the view.
@@ -52,7 +54,8 @@ const loggedInNav = () => {
   const links = [
     ['/create', 'Add Fish'],
     ['/fish', 'View Fish'],
-    ['/agents', 'View Agents']
+    ['/agents', 'View Agents'],
+    ['/organizations', 'View Organizations']
   ]
   return m(navigation.Navbar, {}, [
     navigation.links(links),
@@ -68,7 +71,8 @@ const loggedOutNav = () => {
   ]
   return m(navigation.Navbar, {}, [
     navigation.links(links),
-    navigation.button('/login', 'Login/Signup')
+    navigation.link('/login', 'Login'),
+    navigation.button('/getStarted', 'Get Started')
   ])
 }
 
@@ -77,7 +81,6 @@ const loggedOutNav = () => {
  */
 const resolve = (view, restricted = false) => {
   const resolver = {}
-
   if (restricted) {
     resolver.onmatch = () => {
       if (api.getAuth()) return view
@@ -99,9 +102,11 @@ const resolve = (view, restricted = false) => {
  * Clears user info from memory/storage and redirects.
  */
 const logout = () => {
-  api.clearAuth()
-  transactions.clearPrivateKey()
-  m.route.set('/')
+  auth.signOut()
+     .then(() => {
+       m.route.set('/')
+       m.redraw()
+     })
 }
 
 /**
@@ -121,6 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     '/': resolve(Dashboard),
     '/agents/:publicKey': resolve(AgentDetailPage),
     '/agents': resolve(AgentList),
+    '/organizations': resolve(OrganizationList),
+    '/organizations/:orgId': resolve(OrganizationDetailPage),
     '/create': resolve(AddFishForm, true),
     '/fish/:recordId': resolve(FishDetail),
     '/fish': resolve(FishList),
@@ -128,6 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
     '/logout': { onmatch: logout },
     '/profile': { onmatch: profile },
     '/properties/:recordId/:name': resolve(PropertyDetailPage),
-    '/signup': resolve(SignupForm)
+    '/getStarted': resolve(GetStartedForm)
   })
 })

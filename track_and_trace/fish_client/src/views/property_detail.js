@@ -20,9 +20,9 @@ const m = require('mithril')
 const _ = require('lodash')
 
 const api = require('../services/api')
-const payloads = require('../services/payloads')
+const records = require('../services/records')
+const auth = require('../services/auth')
 const parsing = require('../services/parsing')
-const transactions = require('../services/transactions')
 const layout = require('../components/layout')
 const { LineGraphWidget, MapWidget } = require('../components/data')
 const { Table, PagingButtons } = require('../components/tables')
@@ -69,38 +69,29 @@ const typedWidget = state => {
 
 const updateSubmitter = state => e => {
   e.preventDefault()
-  const { name, dataType, recordId } = state.property
+  auth.getSigner()
+  .then((signer) => {
+    const { name, dataType, recordId } = state.property
 
-  let value = null
-  if (state.update) {
-    value = state.update
-  } else if (name === 'tilt' || name === 'shock') {
-    value = JSON.stringify(state.tmp)
-  } else {
-    value = state.tmp
-  }
+    let value = null
+    if (state.update) {
+      value = state.update
+    } else {
+      value = state.tmp
+    }
 
-  const update = { name }
-  update.dataType = payloads.updateProperties.enum[dataType]
-  update[`${dataType.toLowerCase()}Value`] = value
+    const update = { name }
+    update.dataType = PropertyDefinition.DataType[dataType]
+    update[`${dataType.toLowerCase()}Value`] = value
 
-  const payload = payloads.updateProperties({
-    recordId,
-    properties: [update]
+    return Promise.resolve(records.updateProperties({
+      recordId,
+      properties: [update],
+      signer
+    }))
   })
-
-  transactions.submit(payload, true)
-    .then(() => api.get(`records/${recordId}/${name}`))
-    .then(property => {
-      _.each(e.target.elements, el => { el.value = null })
-      state.update = null
-      state.tmp = {}
-      property.updates.forEach(update => {
-        update.value = parsing.floatifyValue(update.value)
-      })
-      state.property = property
-    })
 }
+
 
 // Produces custom input fields for location, tilt, and shock
 const typedInput = state => {

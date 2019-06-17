@@ -18,8 +18,7 @@
 
 const m = require('mithril')
 
-const api = require('../services/api')
-const transactions = require('../services/transactions')
+const auth = require('../services/auth')
 const forms = require('../components/forms')
 
 /**
@@ -34,26 +33,23 @@ const LoginForm = {
         onsubmit: (e) => {
           e.preventDefault()
           const credentials = {
-            username: vnode.state.username,
-            password: api.hashPassword(vnode.state.password)
+            email: vnode.state.email,
+            password: vnode.state.password
           }
-          api.post('authorization', credentials)
-            .then(res => {
-              api.setAuth(res.authorization)
-              transactions.setPrivateKey(vnode.state.password,
-                                         res.encryptedKey)
+          auth.authenticate(credentials.email, credentials.password)
+            .then(() => {
               m.route.set('/')
             })
         }
       },
       m('legend', 'Login Agent'),
-      forms.textInput(setter('username'), 'Username'),
-      forms.passwordInput(setter('password'), 'Password'),
+       forms.textInput(setter('email'), 'Email'),
+       forms.passwordInput(setter('password'), 'Password'),
       m('.container.text-center',
         'Or you can ',
-        m('a[href="/signup"]',
+        m('a[href="/getStarted"]',
           { oncreate: m.route.link },
-          'create a new Agent')),
+          'get started')),
       m('.form-group',
         m('.row.justify-content-end.align-items-end',
           m('col-2',

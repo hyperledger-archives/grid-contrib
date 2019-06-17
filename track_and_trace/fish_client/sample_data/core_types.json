@@ -1,42 +1,57 @@
 [
   {
-    "name": "fish",
-    "properties": [
-        {
-          "name": "species",
-          "dataType": 4,
-          "required": true
-        },
-        {
-          "name": "length",
-          "dataType": 3,
-          "required": true,
-          "numberExponent": -6
-        },
-        {
-          "name": "weight",
-          "dataType": 3,
-          "required": true,
-          "numberExponent": -6
-        },
-        {
-          "name": "location",
-          "dataType": 7,
-          "required": true
-        },
-        {
-          "name": "temperature",
-          "dataType": 3,
-          "numberExponent": -6
-        },
-        {
-          "name": "tilt",
-          "dataType": 4
-        },
-        {
-          "name": "shock",
-          "dataType": 4
-        }
+    "org_id": "Sample-Org_Fish",
+    "org_name": "Sample Org-Fish",
+    "org_address": "123 Sesame St",
+    "email": "elmo@fish2.xyz",
+    "password": "abc123",
+    "schemas": [
+      {
+        "name": "fish",
+        "description": "A sample fish schema",
+        "properties": [
+            {
+              "name": "serialNumber",
+              "dataType": 4,
+              "required": true
+            },
+            {
+              "name": "species",
+              "dataType": 4,
+              "required": true
+            },
+            {
+              "name": "length",
+              "dataType": 3,
+              "required": true,
+              "numberExponent": -6
+            },
+            {
+              "name": "weight",
+              "dataType": 3,
+              "required": true,
+              "numberExponent": -6
+            },
+            {
+              "name": "location",
+              "dataType": 7,
+              "required": true
+            },
+            {
+              "name": "temperature",
+              "dataType": 3,
+              "numberExponent": -6
+            },
+            {
+              "name": "tilt",
+              "dataType": 4
+            },
+            {
+              "name": "shock",
+              "dataType": 4
+            }
+        ]
+      }
     ]
   }
 ]

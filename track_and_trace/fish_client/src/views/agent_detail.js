@@ -20,6 +20,8 @@ const m = require('mithril')
 const _ = require('lodash')
 
 const api = require('../services/api')
+const agents = require('../services/agents')
+const auth = require('../services/auth')
 const transactions = require('../services/transactions')
 const layout = require('../components/layout')
 const forms = require('../components/forms')
@@ -28,8 +30,8 @@ const forms = require('../components/forms')
 const bullets = count => _.fill(Array(count), '•').join('')
 
 // Basis for info fields with headers
-const labeledField = (header, field) => {
-  return m('.field-group.mt-5', header, field)
+const labeledField = (header, field, className) => {
+  return m(`.field-group.mt-5${className ? `.${className}` : ''}`, header, field)
 }
 
 const fieldHeader = (label, ...additions) => {
@@ -39,8 +41,16 @@ const fieldHeader = (label, ...additions) => {
   ])
 }
 
+const chipField = (label, chips) => {
+  return m('.field-group.mt-5.chip-field', fieldHeader(label), chipTray(chips))
+}
+
+const chipTray = (chips) => {
+  return m('.chip-tray', typeof chips === 'object' ? chips.map(chip => m('.chip', chip)) : m('span', chips))
+}
+
 // Simple info field with a label
-const staticField = (label, info) => labeledField(fieldHeader(label), info)
+ const staticField = (label, info, className) => labeledField(fieldHeader(label), info, className)
 
 const toggledInfo = (isToggled, initialView, toggledView) => {
   return m('.field-info', isToggled ? toggledView : initialView)
@@ -69,16 +79,10 @@ const privateKeyField = state => {
           state.toggled.privateKey = false
           return
         }
-        return transactions.getPrivateKey()
+        return auth.getPrivateKey()
           .then(privateKey => {
             state.toggled.privateKey = privateKey
             m.redraw()
-          })
-      }),
-      forms.clickIcon('cloud-download', () => {
-        return transactions.getPrivateKey()
-          .then(privateKey => {
-            forms.triggerDownload(`${state.agent.username}.priv`, privateKey)
           })
       })),
     toggledInfo(
@@ -136,26 +140,26 @@ const AgentDetailPage = {
   oninit (vnode) {
     vnode.state.toggled = {}
     vnode.state.update = {}
-    api.get(`agents/${vnode.attrs.publicKey}`)
-      .then(agent => { vnode.state.agent = agent })
+    agents.fetchAgent(vnode.attrs.publicKey)
+      .then(agent => {
+        vnode.state.agent = agent
+      })
   },
 
   view (vnode) {
-    const publicKey = _.get(vnode.state, 'agent.publicKey', '')
+    const publicKey = _.get(vnode.state, 'agent.public_key', '')
+    const org = _.get(vnode.state, 'agent.org_id', '')
+    const roles = _.get(vnode.state, 'agent.roles', '')
 
     const profileContent = [
       layout.row(privateKeyField(vnode.state)),
-      layout.row([
-        editField(vnode.state, 'Username', 'username'),
-        passwordField(vnode.state)
-      ]),
-      layout.row(editField(vnode.state, 'Email', 'email'))
+      layout.row(chipField('Roles', roles))
     ]
 
     return [
-      layout.title(_.get(vnode.state, 'agent.name', '')),
       m('.container',
         layout.row(staticField('Public Key', publicKey)),
+        layout.row(staticField('Organization', org)),
         publicKey === api.getPublicKey() ? profileContent : null)
     ]
   }

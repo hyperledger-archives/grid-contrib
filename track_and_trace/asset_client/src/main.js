@@ -99,7 +99,7 @@ const resolve = (view, restricted = false) => {
     }
     return m(Layout, { navbar: loggedOutNav() }, m(view, vnode.attrs))
   }
-
+  
   return resolver
 }
 
