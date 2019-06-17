@@ -146,7 +146,7 @@ const AgentDetailPage = {
     const profileContent = [
       layout.row(privateKeyField(vnode.state)),
       layout.row(staticField('Organization', org)),
-      layout.row(staticField('Roles', roles))
+      layout.row(staticField('Roles', (typeof roles === 'object' ? roles.join(', ') : roles)))
     ]
 
     return [

@@ -65,7 +65,7 @@ const AgentList = {
               m(`a[href=/agents/${agent.public_key}]`, { oncreate: m.route.link },
                 truncate(agent.public_key, { length: 32 })),
               agent.org_id,
-              agent.roles
+              agent.roles.join(', ')
             ]),
           noRowsText: 'No agents found'
         })
