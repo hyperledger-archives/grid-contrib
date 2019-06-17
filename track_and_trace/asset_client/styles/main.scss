@@ -4,5 +4,20 @@
   width: 100%;
 }
 
+footer {
+  position: fixed;
+  bottom: 0;
+  width: calc(100% - 2em);
+  margin: 1em;
+  display: flex !important;
+  justify-content: flex-end;
+  font-size: 14px;
+}
+
+footer .platform img {
+  width: 100px;
+  padding-left: 1em;
+}
+
 @import "~bootstrap/scss/bootstrap";
 @import "~octicons/build/octicons.min";
