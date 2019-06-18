@@ -25,6 +25,11 @@ const agents = require('../services/agents')
 
 const PAGE_SIZE = 50
 
+const chipTray = (chips) => {
+  return m('.chip-tray',
+    typeof chips === 'object' ? chips.map((chip) => m('.chip', chip)) : m('span', chips))
+}
+
 const AgentList = {
   oninit (vnode) {
     vnode.state.agents = []
@@ -65,7 +70,7 @@ const AgentList = {
               m(`a[href=/agents/${agent.public_key}]`, { oncreate: m.route.link },
                 truncate(agent.public_key, { length: 32 })),
               agent.org_id,
-              agent.roles.join(', ')
+              chipTray(agent.roles)
             ]),
           noRowsText: 'No agents found'
         })

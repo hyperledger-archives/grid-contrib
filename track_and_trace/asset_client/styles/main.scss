@@ -4,11 +4,20 @@
   width: 100%;
 }
 
+.header img.powered-by {
+  width: 200px;
+}
+
+.content.container {
+  margin-bottom: 50px;
+}
+
 footer {
+  background: #ddd;
   position: fixed;
   bottom: 0;
-  width: calc(100% - 2em);
-  margin: 1em;
+  width: 100%;
+  padding: 1em;
   display: flex !important;
   justify-content: flex-end;
   font-size: 14px;
@@ -19,5 +28,65 @@ footer .platform img {
   padding-left: 1em;
 }
 
+input[type=text],
+input[type=number],
+input[type=password] {
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid #bbb;
+  transition-duration: 0.3s;
+}
+
+input[type=text]:focus,
+input[type=number]:focus,
+input[type=password]:focus {
+  border-bottom: 2px solid #bbb;
+}
+
+button.btn,
+a.btn {
+  border-radius: 0;
+}
+
+button.btn:hover,
+a.btn:hover {
+  cursor: pointer;
+}
+
+.chip-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.chip-tray {
+  display: flex;
+}
+
+.table .chip-tray {
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: flex;
+  padding: 0 1em;
+  margin: 0 0.5em;
+  justify-content: center;
+  height: 1.6em;
+  border-radius: 0.8em;
+  background: #007bff;
+  color: #fff;
+}
+
+.table .chip-tray .chip {
+  margin: 0.2em 0.5em 0 0;
+}
+
+.table .chip-tray .chip:first-child {
+  margin-top: 0;
+}
+
+.chip:first-child {
+  margin-left: 0
+}
 @import "~bootstrap/scss/bootstrap";
 @import "~octicons/build/octicons.min";

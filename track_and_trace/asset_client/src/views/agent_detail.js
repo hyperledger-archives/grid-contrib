@@ -30,8 +30,8 @@ const forms = require('../components/forms')
 const bullets = count => _.fill(Array(count), '•').join('')
 
 // Basis for info fields with headers
-const labeledField = (header, field) => {
-  return m('.field-group.mt-5', header, field)
+const labeledField = (header, field, className) => {
+  return m(`.field-group.mt-5${className ? `.${className}` : ''}`, header, field)
 }
 
 const fieldHeader = (label, ...additions) => {
@@ -41,8 +41,16 @@ const fieldHeader = (label, ...additions) => {
   ])
 }
 
+const chipField = (label, chips) => {
+  return m('.field-group.mt-5.chip-field', fieldHeader(label), chipTray(chips))
+}
+
+const chipTray = (chips) => {
+  return m('.chip-tray', typeof chips === 'object' ? chips.map(chip => m('.chip', chip)) : m('span', chips))
+}
+
 // Simple info field with a label
-const staticField = (label, info) => labeledField(fieldHeader(label), info)
+const staticField = (label, info, className) => labeledField(fieldHeader(label), info, className)
 
 const toggledInfo = (isToggled, initialView, toggledView) => {
   return m('.field-info', isToggled ? toggledView : initialView)
@@ -142,16 +150,15 @@ const AgentDetailPage = {
     const publicKey = _.get(vnode.state, 'agent.public_key', '')
     const org = _.get(vnode.state, 'agent.org_id', '')
     const roles = _.get(vnode.state, 'agent.roles', '')
-
     const profileContent = [
       layout.row(privateKeyField(vnode.state)),
-      layout.row(staticField('Organization', org)),
-      layout.row(staticField('Roles', (typeof roles === 'object' ? roles.join(', ') : roles)))
+      layout.row(chipField('Roles', roles))
     ]
 
     return [
       m('.container',
         layout.row(staticField('Public Key', publicKey)),
+        layout.row(staticField('Organization', org)),
         publicKey === api.getPublicKey() ? profileContent : null)
     ]
   }
