@@ -35,41 +35,55 @@ function encodePage(page) {
 
 module.exports = {
     computeContractRegistryAddresses(families) {
-        return families.map((family) => SABRE_CONTRACT_REGISTRY_PREFIX + hash(family.name, 64))
+        return families.map((family) => SABRE_CONTRACT_REGISTRY_PREFIX
+        + hash(family.name, 64))
     },
     computeContractAddresses(families) {
-        return families.map((family) => SABRE_CONTRACT_PREFIX + hash(family.name + "," + family.version, 64))
+        return families.map((family) => SABRE_CONTRACT_PREFIX
+        + hash(family.name + "," + family.version, 64))
     },
     computeContractRegistryAddress(name) {
-        return SABRE_CONTRACT_REGISTRY_PREFIX + hash(name, 64)
+        return SABRE_CONTRACT_REGISTRY_PREFIX
+        + hash(name, 64)
     },
     computeContractAddress(name, version) {
-        return SABRE_CONTRACT_PREFIX + hash(name + "," + version, 64)
+        return SABRE_CONTRACT_PREFIX
+        + hash(name + "," + version, 64)
     },
     computeNamespaceRegistryAddress(namespace) {
         let prefix = namespace.substring(0, 6)
-        return SABRE_NAMESPACE_REGISTRY_PREFIX + hash(prefix, 64)
+        return SABRE_NAMESPACE_REGISTRY_PREFIX
+        + hash(prefix, 64)
     },
     makeAgentAddress(agentPublicKey) {
-        return PIKE_NAMESPACE + PIKE_AGENT_SUBSPACE + hash(agentPublicKey, 62)
+        return PIKE_NAMESPACE + PIKE_AGENT_SUBSPACE
+        + hash(agentPublicKey, 62)
     },
     makeOrganizationAddress(organizationId) {
-        return PIKE_NAMESPACE + PIKE_ORG_SUBSPACE + hash(organizationId, 62)
+        return PIKE_NAMESPACE + PIKE_ORG_SUBSPACE
+        + hash(organizationId, 62)
     },
     makeSchemaAddress(schemaName) {
-        return GRID_NAMESPACE + GRID_SCHEMA_SUBSPACE + hash(schemaName, 62)
+        return GRID_NAMESPACE + GRID_SCHEMA_SUBSPACE
+        + hash(schemaName, 62)
     },
     makeRecordAddress(recordId) {
         return TNT_NAMESPACE + TNT_RECORD_SUBSPACE + hash(recordId, 62)
     },
     makePropertyAddresses(recordId, propertyNames) {
-        return propertyNames.map((name) => TNT_NAMESPACE + TNT_PROPERTY_SUBSPACE + hash(recordId, 36) + hash(name, 22) + '0000')
+        return propertyNames.map((name) => TNT_NAMESPACE + TNT_PROPERTY_SUBSPACE
+        + hash(recordId, 36)
+        + hash(name, 22) + '0000')
     },
     makePropertyPageAddresses(recordId, propertyNames, currentPage) {
-        return propertyNames.map((name) => TNT_NAMESPACE + TNT_PROPERTY_SUBSPACE + hash(recordId, 36) + hash(name, 22) + encodePage(currentPage))
+        return propertyNames.map((name) => TNT_NAMESPACE + TNT_PROPERTY_SUBSPACE
+        + hash(recordId, 36)
+        + hash(name, 22) + encodePage(currentPage))
     },
     makeProposalAddress(recordId, receivingAgent)  {
-        return TNT_NAMESPACE + TNT_PROPOSAL_SUBSPACE + hash(recordId, 36) + hash(receivingAgent, 26)
+        return TNT_NAMESPACE + TNT_PROPOSAL_SUBSPACE
+        + hash(recordId, 36)
+        + hash(receivingAgent, 26)
     },
     pikeFamily: {
         name: PIKE_FAMILY_NAME,

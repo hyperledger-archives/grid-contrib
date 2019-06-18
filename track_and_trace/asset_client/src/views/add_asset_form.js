@@ -17,21 +17,12 @@
 
 const m = require('mithril')
 
-const api = require('../services/api')
 const {PropertyDefinition} = require('../protobuf')
 const auth = require('../services/auth')
 const records = require('../services/records')
 const parsing = require('../services/parsing')
 const forms = require('../components/forms')
 const layout = require('../components/layout')
-
-/**
- * Possible selection options
- */
-const authorizableProperties = [
-  'weight',
-  'location'
-]
 
 /**
  * The Form for tracking a new asset.

@@ -16,7 +16,6 @@
  */
 'use strict'
 
-const _ = require('lodash')
 const sjcl = require('sjcl')
 const request = require('request-promise-native')
 const { createHash } = require('crypto')
@@ -204,7 +203,7 @@ const createSchemaTransaction = (schema, signer) => {
     console.error('a signer must be provided')
   }
 
-  let schemaCreate= protos.SchemaCreateAction.create({
+  let schemaCreate = protos.SchemaCreateAction.create({
     schemaName: schema.name,
     description: schema.description,
     properties: schema.properties
@@ -308,13 +307,14 @@ const _waitForCommit = (transactionIds, statusUrl) =>
     })
         .catch((e) => Promise.reject(e.message))
         .then((result) => {
-            let batch_result = JSON.parse(result).data[0]
-            if (batch_result.status === 'COMMITTED') {
+            let batchResult = JSON.parse(result).data[0]
+            if (batchResult.status === 'COMMITTED') {
                 console.log('Seed data batch committed')
-            } else if (batch_result.status === 'INVALID') {
-                let transaction_result = batch_result.invalid_transactions.find((txn) => transactionIds.includes(txn.id))
-                if (transaction_result) {
-                  console.error(`Error seeding data: ${transaction_result.message}`)
+            } else if (batchResult.status === 'INVALID') {
+                let transactionResult = batchResult.invalid_transactions
+                  .find((txn) => transactionIds.includes(txn.id))
+                if (transactionResult) {
+                  console.error(`Error seeding data: ${transactionResult.message}`)
                   return Promise.reject()
                 } else {
                   console.error('Invalid Transaction')

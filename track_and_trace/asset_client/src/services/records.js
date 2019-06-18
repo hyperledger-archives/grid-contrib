@@ -24,10 +24,10 @@ const getRecords = () => {
     })
 }
 
-const fetchRecord = (record_id) => {
+const fetchRecord = (recordId) => {
     return m.request({
         method: 'GET',
-        url: `/grid/record/${record_id}`
+        url: `/grid/record/${recordId}`
     })
 }
 
@@ -60,11 +60,20 @@ const createRecordTransaction = (properties, signer) => {
     let propertyAddresses = addressing.makePropertyAddresses(recordId, propertyNames)
     let propertyPageAddresses = addressing.makePropertyPageAddresses(recordId, propertyNames, 1)
 
-
     return transactionService.createTransaction({
         payloadBytes,
-        inputs: [recordAddress, schemaAddress, agentAddress, ...propertyAddresses, ...propertyPageAddresses],
-        outputs: [recordAddress, ...propertyAddresses, ...propertyPageAddresses],
+        inputs: [
+                  recordAddress,
+                  schemaAddress,
+                  agentAddress,
+                  ...propertyAddresses,
+                  ...propertyPageAddresses
+                ],
+        outputs:  [
+                    recordAddress,
+                    ...propertyAddresses,
+                    ...propertyPageAddresses
+                  ],
     }, signer, 'tnt', [addressing.pikeFamily, addressing.tntFamily, addressing.gridSchemaFamily])
 }
 
@@ -135,7 +144,8 @@ const updatePropertiesTransaction = (recordId, properties, signer) => {
 }
 
 const updateProperties = (recordId, properties, signer) => {
-    transactionService.submitBatch([updatePropertiesTransaction(recordId, properties, signer)], signer)
+    transactionService.submitBatch( [updatePropertiesTransaction(recordId, properties, signer)],
+                                    signer)
 }
 
 const createProposalTransaction = (recordId, receivingAgent, role, properties, terms, signer) => {
@@ -168,16 +178,38 @@ const createProposalTransaction = (recordId, receivingAgent, role, properties, t
 
     return transactionService.createTransaction({
         payloadBytes,
-        inputs: [proposalAddress, recordAddress, issuingAgentAddress, receivingAgentAddress, ...propertyAddresses, ...propertyPageAddresses],
-        outputs: [proposalAddress, recordAddress, ...propertyAddresses, ...propertyPageAddresses]
+        inputs: [
+                  proposalAddress,
+                  recordAddress,
+                  issuingAgentAddress,
+                  receivingAgentAddress,
+                  ...propertyAddresses,
+                  ...propertyPageAddresses
+                ],
+        outputs:  [
+                    proposalAddress,
+                    recordAddress,
+                    ...propertyAddresses,
+                    ...propertyPageAddresses
+                  ]
     }, signer, 'tnt', [addressing.pikeFamily, addressing.tntFamily, addressing.gridSchemaFamily])
 }
 
 const createProposal = (recordId, receivingAgent, role, properties, terms, signer) => {
-    transactionService.submitBatch([createProposalTransaction(recordId, receivingAgent, role, properties, terms, signer)], signer)
+    transactionService.submitBatch(
+      [createProposalTransaction(recordId, receivingAgent, role, properties, terms, signer)],
+      signer
+    )
 }
 
-const answerProposalTransaction = (response, recordId, receivingAgent, role, schemaName, properties, signer) => {
+const answerProposalTransaction = (
+  response,
+  recordId,
+  receivingAgent,
+  role,
+  schemaName,
+  properties,
+  signer) => {
     if (!signer) {
         throw new Error('A signer must be provided')
     }
@@ -206,12 +238,31 @@ const answerProposalTransaction = (response, recordId, receivingAgent, role, sch
 
     return transactionService.createTransaction({
         payloadBytes,
-        inputs: [recordAddress, agentAddress, proposalAddress, schemaAddress, ...propertyAddresses, ...propertyPageAddresses],
-        outputs: [recordAddress, proposalAddress, ...propertyAddresses, ...propertyPageAddresses]
+        inputs: [
+                  recordAddress,
+                  agentAddress,
+                  proposalAddress,
+                  schemaAddress,
+                  ...propertyAddresses,
+                  ...propertyPageAddresses
+                ],
+        outputs:  [
+                    recordAddress,
+                    proposalAddress,
+                    ...propertyAddresses,
+                    ...propertyPageAddresses
+                  ]
     }, signer, 'tnt', [addressing.pikeFamily, addressing.tntFamily, addressing.gridSchemaFamily])
 }
 
-const answerProposal = (response, recordId, receivingAgent, role, schemaName, properties, signer) => {
+const answerProposal = (
+  response,
+  recordId,
+  receivingAgent,
+  role,
+  schemaName,
+  properties,
+  signer) => {
     transactionService.submitBatch([answerProposalTransaction(response,
                                                               recordId,
                                                               receivingAgent,
@@ -253,7 +304,10 @@ const revokeReporterTransaction = (recordId, reporterId, properties, signer) => 
 }
 
 const revokeReporter = (recordId, reporterId, properties, signer) => {
-    transactionService.submitBatch([revokeReporterTransaction(recordId, reporterId, properties, signer)], signer)
+    transactionService.submitBatch(
+      [revokeReporterTransaction(recordId, reporterId, properties, signer)],
+      signer
+    )
 }
 
 module.exports = {

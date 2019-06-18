@@ -152,15 +152,15 @@ const _waitForCommit = (transactionIds, statusUrl) =>
     })
         .catch((e) => Promise.reject(e.message))
         .then((result) => {
-            let batch_result = result.data[0]
-            if (batch_result.status === 'COMMITTED') {
+            let batchResult = result.data[0]
+            if (batchResult.status === 'COMMITTED') {
                 return Promise.resolve(transactionIds)
-            } else if (batch_result.status === 'INVALID') {
-                let transaction_result = batch_result
-                    .invalid_transactions
-                    .find((txn) => transactionIds.includes(txn.id))
-                if (transaction_result) {
-                    return Promise.reject(transaction_result.message)
+            } else if (batchResult.status === 'INVALID') {
+                let transactionResult = batchResult
+                  .invalid_transactions
+                  .find((txn) => transactionIds.includes(txn.id))
+                if (transactionResult) {
+                    return Promise.reject(transactionResult.message)
                 } else {
                     return Promise.reject('Invalid Transaction')
                 }

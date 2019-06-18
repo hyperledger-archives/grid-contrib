@@ -47,17 +47,11 @@ const _sessionStoreSave = (key, value) => {
     sessionStorage.setItem(`${AuthService.namespace}/${key}`, value)
 }
 
-const _sessionStoreGet = (key) => {
-    sessionStorage.getItem(`${AuthService.namespace}/${key}`)
-}
-
 const _sessionStoreRemove= (key) => {
     sessionStorage.removeItem(`${AuthService.namespace}/${key}`)
 }
 
 const requestPassword = () => {
-    let password = null
-
     return modals.show(modals.BasicModal, {
         title: 'Enter Password',
         body: '',
@@ -92,7 +86,11 @@ const AuthService = {
     updateUserData: (update) => {
         AuthService.getUserData()
             .then((user) => {
-                let currentUser = pluck(user, 'username', 'publicKey', 'email', 'encryptedPrivateKey')
+                let currentUser = pluck(user,
+                                        'username',
+                                        'publicKey',
+                                        'email',
+                                        'encryptedPrivateKey')
                 currentUser.encryptedPrivateKey = update.encryptedPrivateKey
                 _localStoreSave(STORE_USER, JSON.stringify(currentUser))
 
@@ -134,7 +132,8 @@ const AuthService = {
             return Promise.resolve(_authStore_cachedSigner)
         }
 
-        let sessionStoredKey = sessionStorage.getItem(`${AuthService.namespace}/${STORE_PRIVATE_KEY}`)
+        let sessionStoredKey = sessionStorage
+                                .getItem(`${AuthService.namespace}/${STORE_PRIVATE_KEY}`)
         if (sessionStoredKey) {
             let signer = CRYPTO_FACTORY.newSigner(Secp256k1PrivateKey.fromHex(sessionStoredKey))
             _authStore_cachedSigner = signer
@@ -207,11 +206,11 @@ const AuthService = {
         let userUpdate = pluck(update, 'email', 'old_password', 'password', 'encryptedPrivateKey')
         let updatedEncryptedKey = sjcl.encrypt(update.password, signer._privateKey.asHex())
         userUpdate.encryptedPrivateKey = updatedEncryptedKey
-        let public_key = update.public_key
+        let publicKey = update.public_key
 
         return m.request({
             method: 'PATCH',
-            url: `api/users/${public_key}`,
+            url: `api/users/${publicKey}`,
             data: userUpdate
         })
         .catch((e) => {
@@ -232,7 +231,8 @@ const AuthService = {
     /**
      * Creates a user then submits a transaction to the blockchain
      *
-     * The function is a (Signer) => Promise, where the promise is resolved when the transaction completes
+     * The function is a (Signer) => Promise, where the promise is resolved when the
+     * transaction completes
      */
     createUser: (user, submitTransactionFn) => {
         let userCreate = pluck(user, 'password', 'email')
@@ -240,7 +240,7 @@ const AuthService = {
             .then(({signer, encryptedPrivateKey}) => {
                 userCreate.publicKey = signer.getPublicKey().asHex()
                 userCreate.encryptedPrivateKey = encryptedPrivateKey
-                userCreate.email = userCreate.email
+
                 return m.request({
                     method: 'POST',
                     url: 'api/users',

@@ -23,7 +23,6 @@ const truncate = require('lodash/truncate')
 const {MultiSelect} = require('../components/forms')
 const { Proposal, PropertyDefinition, AnswerProposalAction } = require('../protobuf')
 const parsing = require('../services/parsing')
-const transactions = require('../services/transactions')
 const api = require('../services/api')
 const auth = require('../services/auth')
 const records = require('../services/records')
@@ -218,7 +217,7 @@ const ReporterControl = {
                   onclick: (e) => {
                     e.preventDefault()
                     _answerProposal(record, p.receivingAgent, ROLE_TO_ENUM['reporter'],
-                                    payloads.answerProposal.enum.CANCEL, 'asset', signer)
+                                    AnswerProposalAction.Response.CANCEL, 'asset', signer)
                     onsuccess()
                   }
                 },
@@ -373,41 +372,6 @@ const ReportLocation = {
 
         m('.col-2',
           m('button.btn.btn-primary', 'Update'))))
-    ]
-  }
-}
-
-const ReportValue = {
-  view: (vnode) => {
-    let onsuccess = vnode.attrs.onsuccess || (() => null)
-    let xform = vnode.attrs.xform || ((x) => x)
-    return [
-      m('form', {
-        onsubmit: (e) => {
-          e.preventDefault()
-          _updateProperty(vnode.attrs.record, {
-            name: vnode.attrs.name,
-            [vnode.attrs.typeField]: xform(vnode.state.value),
-            dataType: vnode.attrs.type
-          }).then(() => {
-            vnode.state.value = ''
-          })
-          .then(onsuccess)
-        }
-      },
-        m('.form-row',
-          m('.form-group.col-10',
-            m('label.sr-only', { 'for': vnode.attrs.name }, vnode.attrs.label),
-            m("input.form-control[type='text']", {
-              name: vnode.attrs.name,
-              onchange: m.withAttr('value', (value) => {
-                vnode.state.value = value
-              }),
-              value: vnode.state.value,
-              placeholder: vnode.attrs.label
-            })),
-         m('.col-2',
-           m('button.btn.btn-primary', 'Update'))))
     ]
   }
 }
@@ -570,15 +534,6 @@ const AssetDetail = {
   }
 }
 
-const _formatValue = (record, propName) => {
-  let prop = getPropertyValue(record, propName)
-  if (prop) {
-    return parsing.stringifyValue(parsing.floatifyValue(prop), '***', propName)
-  } else {
-    return 'N/A'
-  }
-}
-
 const _formatLocation = (location) => {
   if (location && location.latitude !== undefined && location.longitude !== undefined) {
     let latitude = parsing.toFloat(location.latitude)
@@ -589,7 +544,7 @@ const _formatLocation = (location) => {
   }
 }
 
-const _formatWeight = (weight) => `${weight/1000000} kg`
+const _formatWeight = (weight) => `${weight / 1000000} kg`
 
 const _formatTimestamp = (sec) => {
   if (!sec) {

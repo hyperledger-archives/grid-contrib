@@ -96,42 +96,6 @@ const editIcon = (obj, key) => {
   return forms.clickIcon('pencil', () => { obj[key] = !obj[key] })
 }
 
-// Edits a field in state
-const editField = (state, label, key) => {
-  const currentInfo = _.get(state, ['agent', key], '')
-  const onSubmit = () => {
-    return api.patch('users', _.pick(state.update, key))
-      .then(() => { state.agent[key] = state.update[key] })
-  }
-
-  return labeledField(
-    fieldHeader(label, editIcon(state.toggled, key)),
-    toggledInfo(
-      state.toggled[key],
-      currentInfo,
-      infoForm(state, key, onSubmit, {placeholder: currentInfo})))
-}
-
-const passwordField = state => {
-  const onSubmit = () => {
-    return transactions.changePassword(state.update.password)
-      .then(encryptedKey => {
-        return api.patch('users', {
-          encryptedKey,
-          password: state.update.password
-        })
-      })
-      .then(() => m.redraw())
-  }
-
-  return labeledField(
-    fieldHeader('Password', editIcon(state.toggled, 'password')),
-    toggledInfo(
-      state.toggled.password,
-      bullets(16),
-      infoForm(state, 'password', onSubmit, { type: 'password' })))
-}
-
 /**
  * Displays information for a particular Agent.
  * The information can be edited if the user themself.
