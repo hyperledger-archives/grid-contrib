@@ -30,8 +30,8 @@ const forms = require('../components/forms')
 const bullets = count => _.fill(Array(count), '•').join('')
 
 // Basis for info fields with headers
-const labeledField = (header, field) => {
-  return m('.field-group.mt-5', header, field)
+const labeledField = (header, field, className) => {
+  return m(`.field-group.mt-5${className ? `.${className}` : ''}`, header, field)
 }
 
 const fieldHeader = (label, ...additions) => {
@@ -41,8 +41,16 @@ const fieldHeader = (label, ...additions) => {
   ])
 }
 
+const chipField = (label, chips) => {
+  return m('.field-group.mt-5.chip-field', fieldHeader(label), chipTray(chips))
+}
+
+const chipTray = (chips) => {
+  return m('.chip-tray', typeof chips === 'object' ? chips.map(chip => m('.chip', chip)) : m('span', chips))
+}
+
 // Simple info field with a label
-const staticField = (label, info) => labeledField(fieldHeader(label), info)
+const staticField = (label, info, className) => labeledField(fieldHeader(label), info, className)
 
 const toggledInfo = (isToggled, initialView, toggledView) => {
   return m('.field-info', isToggled ? toggledView : initialView)
@@ -88,42 +96,6 @@ const editIcon = (obj, key) => {
   return forms.clickIcon('pencil', () => { obj[key] = !obj[key] })
 }
 
-// Edits a field in state
-const editField = (state, label, key) => {
-  const currentInfo = _.get(state, ['agent', key], '')
-  const onSubmit = () => {
-    return api.patch('users', _.pick(state.update, key))
-      .then(() => { state.agent[key] = state.update[key] })
-  }
-
-  return labeledField(
-    fieldHeader(label, editIcon(state.toggled, key)),
-    toggledInfo(
-      state.toggled[key],
-      currentInfo,
-      infoForm(state, key, onSubmit, {placeholder: currentInfo})))
-}
-
-const passwordField = state => {
-  const onSubmit = () => {
-    return transactions.changePassword(state.update.password)
-      .then(encryptedKey => {
-        return api.patch('users', {
-          encryptedKey,
-          password: state.update.password
-        })
-      })
-      .then(() => m.redraw())
-  }
-
-  return labeledField(
-    fieldHeader('Password', editIcon(state.toggled, 'password')),
-    toggledInfo(
-      state.toggled.password,
-      bullets(16),
-      infoForm(state, 'password', onSubmit, { type: 'password' })))
-}
-
 /**
  * Displays information for a particular Agent.
  * The information can be edited if the user themself.
@@ -142,16 +114,15 @@ const AgentDetailPage = {
     const publicKey = _.get(vnode.state, 'agent.public_key', '')
     const org = _.get(vnode.state, 'agent.org_id', '')
     const roles = _.get(vnode.state, 'agent.roles', '')
-
     const profileContent = [
       layout.row(privateKeyField(vnode.state)),
-      layout.row(staticField('Organization', org)),
-      layout.row(staticField('Roles', roles))
+      layout.row(chipField('Roles', roles))
     ]
 
     return [
       m('.container',
         layout.row(staticField('Public Key', publicKey)),
+        layout.row(staticField('Organization', org)),
         publicKey === api.getPublicKey() ? profileContent : null)
     ]
   }

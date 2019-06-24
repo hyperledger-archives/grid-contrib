@@ -60,39 +60,24 @@ const compile = () => {
       'LatLong',
       'PropertyValue'
     ]),
-    loadProtos('track_and_trace_agent.proto', [
-      'TrackAndTraceAgent',
-      'TrackAndTraceAgentContainer'
-    ]),
-    loadProtos('track_and_trace_property.proto', [
-      'Property',
-      'PropertyContainer',
-      'PropertyPage',
-      'PropertyPageContainer',
-      'PropertySchema',
-      'TrackAndTracePropertyValue',
-      'Location'
-    ]),
-    loadProtos('track_and_trace_proposal.proto', [
-      'Proposal',
-      'ProposalContainer'
-    ]),
-    loadProtos('track_and_trace_record.proto', [
-      'Record',
-      'RecordContainer',
-      'RecordType',
-      'RecordTypeContainer'
-    ]),
     loadProtos('track_and_trace_payload.proto', [
-      'SCPayload',
-      'CreateTrackAndTraceAgentAction',
+      'TrackAndTracePayload',
       'FinalizeRecordAction',
       'CreateRecordAction',
-      'CreateRecordTypeAction',
       'UpdatePropertiesAction',
       'CreateProposalAction',
       'AnswerProposalAction',
       'RevokeReporterAction'
+    ]),
+    loadProtos('track_and_trace_state.proto', [
+      'Property',
+      'PropertyList',
+      'PropertyPage',
+      'PropertyPageList',
+      'Proposal',
+      'ProposalList',
+      'Record',
+      'RecordList'
     ])
   ])
 }

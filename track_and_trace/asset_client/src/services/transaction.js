@@ -24,7 +24,7 @@ const { SabrePayload, ExecuteContractAction } = require('../protobuf')
 
 const addressing = require('../utils/addressing')
 
-const createTransaction = (payloadInfo, signer, family) => {
+const createTransaction = (payloadInfo, signer, family, contracts) => {
     let { payloadBytes, inputs, outputs } = payloadInfo
     let pubkey = signer.getPublicKey().asHex()
 
@@ -35,8 +35,15 @@ const createTransaction = (payloadInfo, signer, family) => {
         case 'tnt':
             family = addressing.tntFamily
             break
+        case 'schema':
+            family = addressing.gridSchemaFamily
+            break
         default:
             family = addressing.tntFamily
+    }
+
+    if (!contracts || contracts.length === 0) {
+        contracts = [family]
     }
 
     const executeContractAction = ExecuteContractAction.create({
@@ -53,8 +60,8 @@ const createTransaction = (payloadInfo, signer, family) => {
     }).finish()
 
     var inputAddresses = [
-        addressing.computeContractRegistryAddress(family.name),
-        addressing.computeContractAddress(family.name, family.version)
+        ...addressing.computeContractRegistryAddresses(contracts),
+        ...addressing.computeContractAddresses(contracts)
     ]
 
     inputs.forEach(function(input) {
@@ -63,8 +70,8 @@ const createTransaction = (payloadInfo, signer, family) => {
     inputAddresses = inputAddresses.concat(inputs)
 
     var outputAddresses = [
-        addressing.computeContractRegistryAddress(family.name),
-        addressing.computeContractAddress(family.name, family.version)
+        ...addressing.computeContractRegistryAddresses(contracts),
+        ...addressing.computeContractAddresses(contracts)
     ]
 
     outputs.forEach(function(output) {
@@ -145,15 +152,15 @@ const _waitForCommit = (transactionIds, statusUrl) =>
     })
         .catch((e) => Promise.reject(e.message))
         .then((result) => {
-            let batch_result = result.data[0]
-            if (batch_result.status === 'COMMITTED') {
+            let batchResult = result.data[0]
+            if (batchResult.status === 'COMMITTED') {
                 return Promise.resolve(transactionIds)
-            } else if (batch_result.status === 'INVALID') {
-                let transaction_result = batch_result
-                    .invalid_transactions
-                    .find((txn) => transactionIds.includes(txn.id))
-                if (transaction_result) {
-                    return Promise.reject(transaction_result.message)
+            } else if (batchResult.status === 'INVALID') {
+                let transactionResult = batchResult
+                  .invalid_transactions
+                  .find((txn) => transactionIds.includes(txn.id))
+                if (transactionResult) {
+                    return Promise.reject(transactionResult.message)
                 } else {
                     return Promise.reject('Invalid Transaction')
                 }

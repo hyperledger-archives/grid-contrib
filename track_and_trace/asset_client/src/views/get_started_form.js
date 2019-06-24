@@ -55,15 +55,16 @@ const GetStarted = {
         GetStarted.passwordConfirm = value
     },
 
-    submit: () => {
+    submit: (e) => {
+        e.preventDefault()
         GetStarted.submitting = true,
         authService.createUser(GetStarted, (signer) => organizationService.createOrganization(GetStarted.org_id, GetStarted.org_name, GetStarted.org_address, signer))
             .then(() => {
                 GetStarted.clear()
                 m.route.set('/')
             })
-            .catch((e) => {
-                GetStarted.error = e
+            .catch((err) => {
+                GetStarted.error = err
                 GetStarted.submitting = false
                 m.redraw()
             })

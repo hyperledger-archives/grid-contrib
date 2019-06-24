@@ -11,19 +11,19 @@ const getAgents = () =>
         url: '/grid/agent'
     })
 
-const fetchAgent = (public_key) =>
+const fetchAgent = (publicKey) =>
     m.request({
         method: 'GET',
-        url: `/grid/agent/${public_key}`
+        url: `/grid/agent/${publicKey}`
     })
 
-const CreateAgentTransaction = (name, org_id, signer) => {
+const CreateAgentTransaction = (name, orgId, signer) => {
     if (!signer) {
         throw new Error('A signer must be provided')
     }
 
     let createAgent = CreateAgentAction.create({
-        orgId: (org_id === '' ? '000000000': org_id),
+        orgId: (orgId === '' ? '000000000' : orgId),
         publicKey: signer.getPublicKey().asHex(),
         active: true,
         roles:[],
@@ -47,8 +47,8 @@ const CreateAgentTransaction = (name, org_id, signer) => {
     }, signer, 'pike')
 }
 
-const createAgent = (name, org_id, signer) => {
-    transactionService.submitBatch([CreateAgentTransaction(name, org_id, signer)], signer)
+const createAgent = (name, orgId, signer) => {
+    transactionService.submitBatch([CreateAgentTransaction(name, orgId, signer)], signer)
 }
 
 module.exports = {

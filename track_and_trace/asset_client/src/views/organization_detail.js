@@ -30,12 +30,12 @@ const OrganizationDetailPage = {
     },
 
     view (vnode) {
-        const org_id = _.get(vnode.state, 'organization.org_id')
+        const orgId = _.get(vnode.state, 'organization.org_id')
         const name = _.get(vnode.state, 'organization.name')
         const address = _.get(vnode.state, 'organization.address')
 
         const organizationContent = [
-            layout.row(staticField('ID', org_id)),
+            layout.row(staticField('ID', orgId)),
             layout.row(staticField('Name', name)),
             layout.row(staticField('Address', address))
         ]
