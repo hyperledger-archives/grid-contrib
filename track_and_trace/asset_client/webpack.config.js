@@ -12,7 +12,8 @@ module.exports = {
   },
 
   module: {
-    rules: [{
+    rules: [
+      {
       test: /\.(scss)$/,
       use: [{
         loader: 'style-loader'
@@ -28,8 +29,14 @@ module.exports = {
         }
       }, {
         loader: 'sass-loader'
-      }]
-    }]
+      }]},
+      {
+        test: /\.(png|svg|jpg|gif)$/,
+        use: [
+          'file-loader'
+        ]
+      }
+    ]
   },
 
   plugins: [

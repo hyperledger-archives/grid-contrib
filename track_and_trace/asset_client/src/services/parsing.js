@@ -22,7 +22,7 @@ const moment = require('moment')
 const FLOAT_PRECISION = 1000000
 
 const STRINGIFIERS = {
-  LOCATION: v => `${v.latitude}, ${v.longitude}`,
+  LatLong: v => `${v.latitude / 1000000}, ${v.longitude / 1000000}`,
   weight: v => `${v}kg`,
   temperature: v => `${v} °C`,
   shock: v => `${v}g`,

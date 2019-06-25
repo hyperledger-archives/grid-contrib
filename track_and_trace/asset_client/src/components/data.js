@@ -17,51 +17,33 @@
 'use strict'
 
 const m = require('mithril')
+const ol = require('ol')
+const Layer = require('ol/layer')
+const Source = require('ol/source')
+const Proj = require('ol/proj')
+const Geom = require('ol/geom')
+const Style = require('ol/style')
 const Chart = require('chart.js')
-const GoogleMapsLoader = require('google-maps')
-const modals = require('./modals')
-const api = require('../services/api')
 
-GoogleMapsLoader.KEY = null
-let google = null
+const makeCoords = (coords) => {
+  return Proj.fromLonLat([coords.longitude, coords.latitude])
+}
 
-// If maps key is missing, asks server for it, and then finally the user
-const setMapsApiKey = () => {
-  return Promise.resolve()
-    .then(() => {
-      if (GoogleMapsLoader.KEY) return
-      return api.get('info')
-        .then(({ mapsApiKey }) => {
-          if (mapsApiKey) {
-            GoogleMapsLoader.KEY = mapsApiKey
-            return
-          }
-
-          return modals.show(modals.BasicModal, {
-            title: 'No API Key',
-            acceptText: 'Set Key',
-            body: m('.container', [
-              m('.mb-4',
-                'Oh no! This server has not been configured with an API key ',
-                'to use Google Maps. Fortunately, you can easily ',
-                m('a', {
-                  href: 'https://developers.google.com/maps/documentation/javascript/get-api-key',
-                  target: '_blank'
-                }, 'request a free developer key from Google'),
-                ' and input it into the field below'),
-              m('input.form-control', {
-                type: 'text',
-                oninput: m.withAttr('value', value => { mapsApiKey = value })
-              })
-            ])
-          })
-            .then(() => {
-              GoogleMapsLoader.KEY = mapsApiKey
-              api.post('info/mapsApiKey', { mapsApiKey })
-            })
-            .catch(() => {})
-        })
+const createMarker = (coords) => {
+  let feature = new ol.Feature({
+    geometry: new Geom.Point(
+      makeCoords(coords)
+    ),
+    name: 'Point'
+  })
+  feature.setStyle(new Style.Style({
+    image: new Style.Icon({
+      crossOrigin: 'anonymous',
+      src: '../images/location.png'
     })
+  }))
+
+  return feature
 }
 
 const LineGraphWidget = {
@@ -144,38 +126,72 @@ const LineGraphWidget = {
 }
 
 const MapWidget = {
+  map: null,
+  markers: [],
+  line: new Geom.LineString([]),
+
+  createMap (coordinates) {
+    const currentLocation = coordinates[0]
+
+    MapWidget.map = new ol.Map({
+      view: new ol.View({
+        center: makeCoords(currentLocation),
+        zoom: 7
+      }),
+      layers: [
+        new Layer.Tile({
+          source: new Source.OSM()
+        })
+      ],
+      target: 'map',
+      controls: []
+    })
+
+    // Create markers for each location
+    for ( let i = coordinates.length-1; i >= 0; i-- ) {
+      MapWidget.markers.push(createMarker(coordinates[i]))
+
+      //add coordinate to connection line
+      MapWidget.line.appendCoordinate(makeCoords(coordinates[i]))
+    }
+
+    // build line feature
+    let lineFeature = new ol.Feature({
+      geometry: MapWidget.line,
+      name: 'Line'
+    })
+    lineFeature.setStyle(new Style.Style({
+      stroke: new Style.Stroke({
+        color: "#E74C3C",
+        width: 3
+      })
+    }))
+
+    // Create Layer with Markers
+    let markerLayer = new Layer.Vector({
+      source: new Source.Vector({
+        features: [lineFeature, ...MapWidget.markers]
+      })
+    })
+
+    MapWidget.map.addLayer(markerLayer)
+  },
+
   view (vnode) {
-    return m('#map-container')
+    return m('#map')
   },
 
   oncreate (vnode) {
-    setMapsApiKey()
-      .then(() => {
-        GoogleMapsLoader.load(goog => {
-          google = goog
-          const coordinates = vnode.attrs.coordinates.map(coord => ({
-            lat: coord.latitude,
-            lng: coord.longitude
-          }))
+    MapWidget.line.setCoordinates([])
+    MapWidget.markers = []
 
-          const container = document.getElementById('map-container')
-          vnode.state.map = new google.maps.Map(container, { zoom: 4 })
-          vnode.state.markers = coordinates.map(position => {
-            return new google.maps.Marker({ position, map: vnode.state.map })
-          })
+    let coordinates = vnode.attrs.coordinates.map((coord) => {
+      return {latitude: coord.latitude / 1000000, longitude: coord.longitude / 1000000}
+    })
 
-          vnode.state.path = new google.maps.Polyline({
-            map: vnode.state.map,
-            path: coordinates,
-            geodesic: true,
-            strokeColor: '#FF0000'
-          })
-
-          vnode.state.bounds = new google.maps.LatLngBounds()
-          coordinates.forEach(position => vnode.state.bounds.extend(position))
-          vnode.state.map.fitBounds(vnode.state.bounds)
-        })
-      })
+    if (coordinates.length > 0) {
+      MapWidget.createMap(coordinates.reverse())
+    }
   },
 
   onbeforeupdate (vnode, old) {
@@ -185,19 +201,33 @@ const MapWidget = {
   },
 
   onupdate (vnode) {
-    const coordinates = vnode.attrs.coordinates.map(coord => ({
-      lat: coord.latitude,
-      lng: coord.longitude
-    }))
+    let coordinates = vnode.attrs.coordinates.map((coord) => {
+      return {
+        latitude: coord.latitude / 1000000,
+        longitude: coord.longitude / 1000000
+      }
+    }).reverse()
+    const currentLocation = coordinates[0]
 
-    vnode.state.markers.forEach(marker => marker.setMap(null))
-    vnode.state.markers = coordinates.map(position => {
-      return new google.maps.Marker({ position, map: vnode.state.map })
-    })
+    // initialize map if no previous locations
+    if (vnode.attrs.coordinates.length === 1) {
+      MapWidget.createMap(coordinates)
+    } else {
+      // Center view on new location
+      MapWidget.map.getView()
+        .setCenter(makeCoords(currentLocation))
 
-    vnode.state.path.setPath(coordinates)
-    coordinates.forEach(position => vnode.state.bounds.extend(position))
-    vnode.state.map.fitBounds(vnode.state.bounds)
+      let marker = createMarker(currentLocation)
+
+      MapWidget.markers.push(marker)
+      MapWidget.map.getLayers()
+        .getArray()[1]
+        .getSource()
+        .addFeature(marker)
+
+      MapWidget.line.appendCoordinate(makeCoords(currentLocation))
+    }
+
   }
 }
 
