@@ -588,7 +588,7 @@ const FishDetail = {
         _row(_labelProperty('Species', getPropertyValue(record, 'species'))),
 
         _row(
-          _labelProperty('Length (m)', parsing.toFloat(getPropertyValue(record, 'length', 0))),
+          _labelProperty('Length (cm)', parsing.toFloat(getPropertyValue(record, 'length', 0))),
           _labelProperty('Weight (kg)', parsing.toFloat(getPropertyValue(record, 'weight', 0)))),
 
         _row(
@@ -659,6 +659,11 @@ const FishDetail = {
 const _formatValue = (record, propName) => {
   let prop = getPropertyValue(record, propName)
   if (prop) {
+    if (propName === 'shock') {
+      let val = JSON.parse(prop)
+      let gs = val.accel / val.duration
+      return parsing.stringifyValue(parsing.floatifyValue(gs), '***', propName)
+    }
     return parsing.stringifyValue(parsing.floatifyValue(prop), '***', propName)
   } else {
     return 'N/A'
