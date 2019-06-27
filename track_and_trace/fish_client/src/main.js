@@ -45,7 +45,11 @@ const Layout = {
   view (vnode) {
     return [
       vnode.attrs.navbar,
-      m('.content.container', vnode.children)
+      m('.content.container', vnode.children),
+      m('footer',
+        m('.platform',
+          m('span', 'Powered by'),
+          m('img', {src: '../images/hyperledger.svg'})))
     ]
   }
 }

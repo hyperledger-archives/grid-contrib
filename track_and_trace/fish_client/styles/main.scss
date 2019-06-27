@@ -23,6 +23,11 @@ footer {
   font-size: 14px;
 }
 
+footer .platform img {
+  width: 100px;
+  padding-left: 1em;
+}
+
 input[type=text],
 input[type=number],
 input[type=password] {
@@ -30,6 +35,7 @@ input[type=password] {
   border: 0;
   border-bottom: 1px solid #bbb;
   transition-duration: 0.3s;
+  margin-bottom: 0.5em;
 }
 
 input[type=text]:focus,
@@ -83,6 +89,5 @@ a.btn:hover {
 .chip:first-child {
   margin-left: 0
 }
-
 @import "~bootstrap/scss/bootstrap";
 @import "~octicons/build/octicons.min";
