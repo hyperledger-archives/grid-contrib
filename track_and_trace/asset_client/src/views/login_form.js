@@ -54,7 +54,7 @@ const LoginForm = {
         m('.row.justify-content-end.align-items-end',
           m('col-2',
             m('button.btn.btn-primary',
-              {'data-toggle': 'modal', 'data-target': '#modal'},
+              { 'data-toggle': 'modal', 'data-target': '#modal' },
               'Login')))))
     ])
   }

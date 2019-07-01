@@ -143,7 +143,8 @@ const PropertyDetailPage = {
             } else {
               vnode.state.property = null
             }
-          }}
+          }
+        }
         )
         .then(() => { vnode.state.refreshId = setTimeout(refresh, 2000) })
     }
@@ -163,7 +164,7 @@ const PropertyDetailPage = {
 
     const updates = _.get(vnode.state, 'property.updates', [])
     const page = updates.slice(vnode.state.currentPage * PAGE_SIZE,
-                               (vnode.state.currentPage + 1) * PAGE_SIZE)
+      (vnode.state.currentPage + 1) * PAGE_SIZE)
     const timestampAcc = []
     const filteredPage = page.filter((update) => {
       if (!timestampAcc.includes(update.timestamp)) {
@@ -192,9 +193,9 @@ const PropertyDetailPage = {
           rows: filteredPage.map(update => {
             return [
               parsing.stringifyValue(update.value,
-                                     vnode.state.property.data_type,
-                                     vnode.state.property.name),
-              _.truncate(update.reporter.public_key, {length: 24}),
+                vnode.state.property.data_type,
+                vnode.state.property.name),
+              _.truncate(update.reporter.public_key, { length: 24 }),
               parsing.formatTimestamp(update.timestamp)
             ]
           }),

@@ -31,21 +31,21 @@ awaitServerReady()
   .then(() => {
     data.map((org) => {
       createSigner(org.password)
-      .then(({signer, encryptedPrivateKey}) => {
-        return createSeedUser(org, signer, encryptedPrivateKey)
-      })
-      .then(({org, signer}) => {
-        return createOrganization(org, signer)
-      })
-      .then((signer) => {
-        return updateAgent(org, signer, ['admin', 'can_create_schema', 'can_update_schema'])
-      })
-      .then((signer) => {
-        return createSchemas(org, signer)
-      })
-      .catch((err) => {
-        console.error(err)
-      })
+        .then(({ signer, encryptedPrivateKey }) => {
+          return createSeedUser(org, signer, encryptedPrivateKey)
+        })
+        .then(({ org, signer }) => {
+          return createOrganization(org, signer)
+        })
+        .then((signer) => {
+          return updateAgent(org, signer, ['admin', 'can_create_schema', 'can_update_schema'])
+        })
+        .then((signer) => {
+          return createSchemas(org, signer)
+        })
+        .catch((err) => {
+          console.error(err)
+        })
     })
   })
   .catch(err => {

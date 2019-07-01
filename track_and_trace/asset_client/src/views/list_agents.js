@@ -19,7 +19,7 @@
 const m = require('mithril')
 const sortBy = require('lodash/sortBy')
 const truncate = require('lodash/truncate')
-const {Table, FilterGroup, PagingButtons} = require('../components/tables.js')
+const { Table, FilterGroup, PagingButtons } = require('../components/tables.js')
 const api = require('../services/api')
 const agents = require('../services/agents')
 
@@ -64,8 +64,8 @@ const AgentList = {
             'Roles'
           ],
           rows: vnode.state.filteredAgents.slice(
-              vnode.state.currentPage * PAGE_SIZE,
-              (vnode.state.currentPage + 1) * PAGE_SIZE)
+            vnode.state.currentPage * PAGE_SIZE,
+            (vnode.state.currentPage + 1) * PAGE_SIZE)
             .map((agent) => [
               m(`a[href=/agents/${agent.public_key}]`, { oncreate: m.route.link },
                 truncate(agent.public_key, { length: 32 })),
@@ -90,7 +90,7 @@ const _controlButtons = (vnode, publicKey) => {
         m(FilterGroup, {
           ariaLabel: 'Filter Based on Ownership',
           filters: {
-            'All': () => { vnode.state.filteredAgents = vnode.state.agents },
+            'All': () => { vnode.state.filteredAgents = vnode.state.agents }
           },
           initialFilter: 'All'
         })),

@@ -51,8 +51,8 @@ const inputField = (name, label, value, oninput, type = 'text') =>
       oninput: m.withAttr('value', oninput),
       value,
       type,
-      name,
-    }),
+      name
+    })
   ])
 
 /**
@@ -96,7 +96,7 @@ const validator = (predicate, message, id = null) => e => {
  * Triggers a download of a dynamically created text file
  */
 const triggerDownload = (name, ...contents) => {
-  const file = new window.Blob(contents, {type: 'text/plain'})
+  const file = new window.Blob(contents, { type: 'text/plain' })
   const href = window.URL.createObjectURL(file)
   const container = document.getElementById('download-container')
   m.render(container, m('a#downloader', { href, download: name }))
@@ -119,7 +119,7 @@ const MultiSelect = {
       m('.dropdown',
         m(`button.btn.btn-${color}.btn-block.dropdown-toggle.text-left`,
           {
-            'data-toggle': 'dropdown',
+            'data-toggle': 'dropdown'
           }, vnode.attrs.label),
         m('.dropdown-menu.w-100',
           m("a.dropdown-item[href='#']", {
@@ -137,20 +137,20 @@ const MultiSelect = {
           m('.dropdown-divider'),
           vnode.attrs.options.map(
             ([value, label]) =>
-             m("a.dropdown-item[href='#']", {
-               onclick: (e) => {
-                 e.preventDefault()
+              m("a.dropdown-item[href='#']", {
+                onclick: (e) => {
+                  e.preventDefault()
 
-                 let setLocation = selected.indexOf(value)
-                 if (setLocation >= 0) {
-                   selected.splice(setLocation, 1)
-                 } else {
-                   selected.push(value)
-                 }
+                  let setLocation = selected.indexOf(value)
+                  if (setLocation >= 0) {
+                    selected.splice(setLocation, 1)
+                  } else {
+                    selected.push(value)
+                  }
 
-                 handleChange(selected)
-               }
-             }, label, (selected.indexOf(value) > -1 ? ' \u2714' : '')))))
+                  handleChange(selected)
+                }
+              }, label, (selected.indexOf(value) > -1 ? ' \u2714' : '')))))
     ]
   }
 }

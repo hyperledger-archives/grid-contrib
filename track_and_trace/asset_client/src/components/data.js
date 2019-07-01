@@ -148,10 +148,10 @@ const MapWidget = {
     })
 
     // Create markers for each location
-    for ( let i = coordinates.length-1; i >= 0; i-- ) {
+    for (let i = coordinates.length - 1; i >= 0; i--) {
       MapWidget.markers.push(createMarker(coordinates[i]))
 
-      //add coordinate to connection line
+      // add coordinate to connection line
       MapWidget.line.appendCoordinate(makeCoords(coordinates[i]))
     }
 
@@ -162,7 +162,7 @@ const MapWidget = {
     })
     lineFeature.setStyle(new Style.Style({
       stroke: new Style.Stroke({
-        color: "#E74C3C",
+        color: '#E74C3C',
         width: 3
       })
     }))
@@ -186,7 +186,7 @@ const MapWidget = {
     MapWidget.markers = []
 
     let coordinates = vnode.attrs.coordinates.map((coord) => {
-      return {latitude: coord.latitude / 1000000, longitude: coord.longitude / 1000000}
+      return { latitude: coord.latitude / 1000000, longitude: coord.longitude / 1000000 }
     })
 
     if (coordinates.length > 0) {
@@ -227,7 +227,6 @@ const MapWidget = {
 
       MapWidget.line.appendCoordinate(makeCoords(currentLocation))
     }
-
   }
 }
 

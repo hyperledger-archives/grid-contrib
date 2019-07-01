@@ -49,7 +49,7 @@ const BasicModal = {
                 'data-dismiss': 'modal',
                 'aria-label': 'Close'
               }, m('span', { 'aria-hidden': 'true' }, m.trust('&times;')))
-              ),
+            ),
             m('.modal-body', vnode.attrs.body),
             m('.modal-footer',
               m('button.btn.btn-secondary', {
@@ -67,7 +67,7 @@ const BasicModal = {
 }
 
 const StatusModal = {
-  view(vnode) {
+  view (vnode) {
     const cancelFn = vnode.attrs.cancelFn || _noop
 
     return m('.modal.fade#modal', {
@@ -107,7 +107,7 @@ const show = (modal, attrs, children) => {
 
   const container = document.getElementById('modal-container')
   m.render(container,
-           m(modal, _.assign(attrs, { acceptFn, cancelFn }, children)))
+    m(modal, _.assign(attrs, { acceptFn, cancelFn }, children)))
   const $modal = document.getElementById('modal')
   $modal.on('hidden.bs.modal', () => m.mount(container, null))
   $modal.modal('show')

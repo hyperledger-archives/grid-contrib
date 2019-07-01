@@ -20,7 +20,7 @@ const m = require('mithril')
 const moment = require('moment')
 const truncate = require('lodash/truncate')
 
-const {MultiSelect} = require('../components/forms')
+const { MultiSelect } = require('../components/forms')
 const { Proposal, PropertyDefinition, AnswerProposalAction } = require('../protobuf')
 const parsing = require('../services/parsing')
 const api = require('../services/api')
@@ -47,9 +47,9 @@ const propertyNames = () => {
     url: '/grid/schema/asset',
     method: 'GET'
   })
-  .then(result => {
-    return result.properties.map((property) => property.name)
-  })
+    .then(result => {
+      return result.properties.map((property) => property.name)
+    })
 }
 
 const _labelProperty = (label, value) => [
@@ -61,8 +61,8 @@ const _labelProperty = (label, value) => [
 const _row = (...cols) =>
   m('.row',
     cols
-    .filter((col) => col !== null)
-    .map((col) => m('.col', col)))
+      .filter((col) => col !== null)
+      .map((col) => m('.col', col)))
 
 const TransferDropdown = {
   view (vnode) {
@@ -79,8 +79,8 @@ const TransferDropdown = {
           { 'data-toggle': 'dropdown' },
           vnode.children),
         m('.dropdown-menu',
-          (vnode.attrs.agents ?
-            vnode.attrs.agents.map(agent => {
+          (vnode.attrs.agents
+            ? vnode.attrs.agents.map(agent => {
               let proposal = _getProposal(record, agent.public_key, role)
               return [
                 m("a.dropdown-item[href='#']", {
@@ -88,7 +88,7 @@ const TransferDropdown = {
                     e.preventDefault()
                     if (proposal && proposal.issuingAgent === publicKey) {
                       _answerProposal(record, agent.public_key, ROLE_TO_ENUM[role],
-                                      Proposal.Role.CANCEL, 'asset', properties, signer)
+                        Proposal.Role.CANCEL, 'asset', properties, signer)
                         .then(onsuccess)
                     } else {
                       _submitProposal(record, ROLE_TO_ENUM[role], agent.public_key, signer, properties)
@@ -96,11 +96,11 @@ const TransferDropdown = {
                     }
                   }
                 }, m('span.text-truncate',
-                    truncate(agent.public_key, { length: 32 }),
-                    (proposal ? ' \u2718' : '')))
+                  truncate(agent.public_key, { length: 32 }),
+                  (proposal ? ' \u2718' : '')))
               ]
-            }) :
-            null
+            })
+            : null
           )))
     ]
   }
@@ -114,7 +114,7 @@ const ROLE_TO_ENUM = {
 
 const TransferControl = {
   view (vnode) {
-    let {record, agents, publicKey, role, label, signer, properties} = vnode.attrs
+    let { record, agents, publicKey, role, label, signer, properties } = vnode.attrs
     if (record.final) {
       return null
     }
@@ -139,7 +139,7 @@ const TransferControl = {
             onclick: (e) => {
               e.preventDefault()
               _answerProposal(record, publicKey, ROLE_TO_ENUM[role],
-                              AnswerProposalAction.Response.ACCEPT, 'asset', properties, signer)
+                AnswerProposalAction.Response.ACCEPT, 'asset', properties, signer)
 
                 .then(onsuccess)
             }
@@ -149,7 +149,7 @@ const TransferControl = {
             onclick: (e) => {
               e.preventDefault()
               _answerProposal(record, publicKey, ROLE_TO_ENUM[role],
-                              AnswerProposalAction.Response.REJECT, 'asset', properties, signer)
+                AnswerProposalAction.Response.REJECT, 'asset', properties, signer)
                 .then(onsuccess)
             }
           },
@@ -170,7 +170,7 @@ const _hasProposal = (record, receivingAgent, role) =>
 
 const ReporterControl = {
   view (vnode) {
-    let {record, agents, publicKey, signer} = vnode.attrs
+    let { record, agents, publicKey, signer } = vnode.attrs
     if (record.final) {
       return null
     }
@@ -183,28 +183,28 @@ const ReporterControl = {
           record,
           agents,
           onsubmit: ([publicKey, properties]) =>
-          _submitProposal(record, ROLE_TO_ENUM['reporter'], publicKey, signer, properties),
+            _submitProposal(record, ROLE_TO_ENUM['reporter'], publicKey, signer, properties),
           onsuccess
         }),
 
         // Outstanding reporters
         Object.entries(_reporters(record))
-        .filter(([key, _]) => key !== publicKey)
-        .map(([key, properties]) => {
-          return [
-            m('.mt-2.d-flex.justify-content-start',
-              `${truncate(key, {length: 24})} authorized for ${properties}`,
-              '',
-              m('.button.btn.btn-outline-danger.ml-auto', {
-                onclick: (e) => {
-                  e.preventDefault()
-                  _revokeAuthorization(record, key, properties, signer)
-                  onsuccess()
-                }
-              },
-              'Revoke Authorization'))
-          ]
-        }),
+          .filter(([key, _]) => key !== publicKey)
+          .map(([key, properties]) => {
+            return [
+              m('.mt-2.d-flex.justify-content-start',
+                `${truncate(key, { length: 24 })} authorized for ${properties}`,
+                '',
+                m('.button.btn.btn-outline-danger.ml-auto', {
+                  onclick: (e) => {
+                    e.preventDefault()
+                    _revokeAuthorization(record, key, properties, signer)
+                    onsuccess()
+                  }
+                },
+                'Revoke Authorization'))
+            ]
+          }),
 
         // Pending authorizations
         record.proposals.filter((p) => p.role === 'Reporter' && p.issuingAgent === publicKey).map(
@@ -217,7 +217,7 @@ const ReporterControl = {
                   onclick: (e) => {
                     e.preventDefault()
                     _answerProposal(record, p.receivingAgent, ROLE_TO_ENUM['reporter'],
-                                    AnswerProposalAction.Response.CANCEL, 'asset', signer)
+                      AnswerProposalAction.Response.CANCEL, 'asset', signer)
                     onsuccess()
                   }
                 },
@@ -232,7 +232,7 @@ const ReporterControl = {
             onclick: (e) => {
               e.preventDefault()
               _answerProposal(record, publicKey, ROLE_TO_ENUM['reporter'],
-                              AnswerProposalAction.Response.ACCEPT, 'asset', proposal.properties, signer)
+                AnswerProposalAction.Response.ACCEPT, 'asset', proposal.properties, signer)
               onsuccess()
             }
           },
@@ -241,7 +241,7 @@ const ReporterControl = {
             onclick: (e) => {
               e.preventDefault()
               _answerProposal(record, publicKey, ROLE_TO_ENUM['reporter'],
-                              AnswerProposalAction.Response.REJECT, 'asset', proposal.properties, signer)
+                AnswerProposalAction.Response.REJECT, 'asset', proposal.properties, signer)
               onsuccess()
             }
           },
@@ -269,7 +269,7 @@ const _reporters = (record) =>
 const _agentLink = (key) =>
   m(`a[href=/agents/${key}]`,
     { oncreate: m.route.link },
-    truncate(key, {length: 24}))
+    truncate(key, { length: 24 }))
 
 const _propLink = (record, propName, content) =>
   m(`a[href=/assets/${record.record_id}/${propName}]`,
@@ -284,16 +284,16 @@ const ReportWeight = {
         onsubmit: (e) => {
           e.preventDefault()
           _updateProperty(vnode.attrs.record, {
-              name: 'weight',
-              dataType: PropertyDefinition.DataType.NUMBER,
-              numberValue: parseFloat(vnode.state.weight) * 1000000
-            },
-            vnode.attrs.signer
+            name: 'weight',
+            dataType: PropertyDefinition.DataType.NUMBER,
+            numberValue: parseFloat(vnode.state.weight) * 1000000
+          },
+          vnode.attrs.signer
           )
-          .then(() => {
-            vnode.state.weight = ''
-          })
-          .then(onsuccess)
+            .then(() => {
+              vnode.state.weight = ''
+            })
+            .then(onsuccess)
         }
       },
       m('.form-row',
@@ -324,20 +324,20 @@ const ReportLocation = {
         onsubmit: (e) => {
           e.preventDefault()
           _updateProperty(vnode.attrs.record, {
-              name: 'location',
-              latLongValue: {
-                latitude: parseFloat(vnode.state.latitude) * 1000000,
-                longitude: parseFloat(vnode.state.longitude) * 1000000
-              },
-              dataType: PropertyDefinition.DataType.LAT_LONG
+            name: 'location',
+            latLongValue: {
+              latitude: parseFloat(vnode.state.latitude) * 1000000,
+              longitude: parseFloat(vnode.state.longitude) * 1000000
             },
-            vnode.attrs.signer
+            dataType: PropertyDefinition.DataType.LAT_LONG
+          },
+          vnode.attrs.signer
           )
-          .then(() => {
-            vnode.state.latitude = ''
-            vnode.state.longitude = ''
-          })
-          .then(onsuccess)
+            .then(() => {
+              vnode.state.latitude = ''
+              vnode.state.longitude = ''
+            })
+            .then(onsuccess)
         }
       },
       m('.form-row',
@@ -462,9 +462,9 @@ const AssetDetail = {
           _labelProperty('Serial Number', getPropertyValue(record, 'serialNumber'))),
         _row(
           _labelProperty('Created',
-                         _formatTimestamp(getOldestPropertyUpdateTime(record))),
+            _formatTimestamp(getOldestPropertyUpdateTime(record))),
           _labelProperty('Updated',
-                         _formatTimestamp(getLatestUpdateTime(record)))),
+            _formatTimestamp(getLatestUpdateTime(record)))),
 
         _row(
           _labelProperty('Owner', (owner && owner.public_key ? _agentLink(owner.public_key) : '')),
@@ -497,8 +497,8 @@ const AssetDetail = {
         _row(
           _labelProperty('Weight', _formatWeight(getPropertyValue(record, 'weight'))),
           (isReporter(record, 'weight', publicKey) && !record.final
-           ? m(ReportWeight, { record, onsuccess: () => _loadData(record.record_id, vnode.state), signer })
-           : null)),
+            ? m(ReportWeight, { record, onsuccess: () => _loadData(record.record_id, vnode.state), signer })
+            : null)),
 
         _row(
           _labelProperty(
@@ -506,8 +506,8 @@ const AssetDetail = {
             _propLink(record, 'location', _formatLocation(getPropertyValue(record, 'location')))
           ),
           (isReporter(record, 'location', publicKey) && !record.final
-           ? m(ReportLocation, { record, onsuccess: () => _loadData(record.record_id, vnode.state), signer })
-           : null)),
+            ? m(ReportLocation, { record, onsuccess: () => _loadData(record.record_id, vnode.state), signer })
+            : null)),
 
         _row(m(ReporterControl, {
           record,
@@ -518,18 +518,18 @@ const AssetDetail = {
         })),
 
         ((record.owner === publicKey && !record.final)
-         ? m('.row.m-2',
-             m('.col.text-center',
-               m('button.btn.btn-danger', {
-                 onclick: (e) => {
-                   e.preventDefault()
-                   _finalizeRecord(record, signer).then(() =>
-                     _loadData(vnode.attrs.recordId, vnode.state))
-                 }
-               },
-               'Finalize')))
-         : '')
-       )
+          ? m('.row.m-2',
+            m('.col.text-center',
+              m('button.btn.btn-danger', {
+                onclick: (e) => {
+                  e.preventDefault()
+                  _finalizeRecord(record, signer).then(() =>
+                    _loadData(vnode.attrs.recordId, vnode.state))
+                }
+              },
+              'Finalize')))
+          : '')
+      )
     ]
   }
 }
@@ -574,9 +574,9 @@ const _loadData = (recordId, state) => {
           state.signer = signer
         })
     })
-    .then(()=> {
+    .then(() => {
       propertyNames()
-      .then((res) => state.properties = res)
+        .then((res) => state.properties = res)
     })
 }
 
@@ -586,7 +586,7 @@ const _submitProposal = (record, role, receivingAgent, signer, properties = auth
     receivingAgent,
     role,
     properties,
-    "authorizing agent to modify weight and location",
+    'authorizing agent to modify weight and location',
     signer
   ))
 }

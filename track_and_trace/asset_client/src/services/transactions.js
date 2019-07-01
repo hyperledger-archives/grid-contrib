@@ -78,22 +78,21 @@ const createTxn = payload => {
       family = (payload.family ? payload.family : TNT_FAMILY.NAME)
     } else {
       throw new PayloadError(`Payloads should be in the form { family: String, payload: Uint8Array }.`)
-    } 
-  }
-  else {
+    }
+  } else {
     value = payload
     family = TNT_FAMILY.NAME
   }
 
   let fields
-  switch(family) {
+  switch (family) {
     case PIKE_FAMILY.NAME:
       fields = PIKE_FAMILY
       break
     default:
       fields = TNT_FAMILY
   }
-  
+
   const header = TransactionHeader.encode({
     signerPublicKey,
     batcherPublicKey: signerPublicKey,
@@ -102,7 +101,7 @@ const createTxn = payload => {
     inputs: [fields.NAMESPACE],
     outputs: [fields.NAMESPACE],
     nonce: (Math.random() * 10 ** 18).toString(36),
-    payloadSha512: createHash('sha512').update(value).digest('hex'),
+    payloadSha512: createHash('sha512').update(value).digest('hex')
   }).finish()
 
   return Transaction.create({
@@ -162,12 +161,12 @@ const clearPrivateKey = () => {
  */
 const getPrivateKey = () => {
   return Promise.resolve()
-  .then(() => {
-    if (privateKey) return privateKey.asHex()
-    const encryptedKey = window.localStorage.getItem(ENCRYPTED_KEY)
-    return requestPassword()
-      .then(password => sjcl.decrypt(password, encryptedKey))
-  })
+    .then(() => {
+      if (privateKey) return privateKey.asHex()
+      const encryptedKey = window.localStorage.getItem(ENCRYPTED_KEY)
+      return requestPassword()
+        .then(password => sjcl.decrypt(password, encryptedKey))
+    })
 }
 
 /**

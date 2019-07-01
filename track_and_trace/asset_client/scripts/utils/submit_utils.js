@@ -76,12 +76,12 @@ const createTxn = (payload, signer, family, contracts) => {
     version: family.version,
     inputs: inputs,
     outputs: outputs,
-    payload: payloadBytes,
+    payload: payloadBytes
   })
 
   const sabrePayloadBytes = protos.SabrePayload.encode({
     action: protos.SabrePayload.Action.EXECUTE_CONTRACT,
-    executeContract: executeContractAction,
+    executeContract: executeContractAction
   }).finish()
 
   var inputAddresses = [
@@ -89,7 +89,7 @@ const createTxn = (payload, signer, family, contracts) => {
     ...addressing.computeContractAddresses(contracts)
   ]
 
-  inputs.forEach(function(input) {
+  inputs.forEach(function (input) {
     inputAddresses.push(addressing.computeNamespaceRegistryAddress(input))
   })
   inputAddresses = inputAddresses.concat(inputs)
@@ -99,7 +99,7 @@ const createTxn = (payload, signer, family, contracts) => {
     ...addressing.computeContractAddresses(contracts)
   ]
 
-  outputs.forEach(function(output) {
+  outputs.forEach(function (output) {
     outputAddresses.push(addressing.computeNamespaceRegistryAddress(output))
   })
   outputAddresses = outputAddresses.concat(outputs)
@@ -154,8 +154,8 @@ const submitTxns = (transactions, signer) => {
     .then((body) => {
       let link = JSON.parse(body).link
       _waitForCommit(
-          transactionIds,
-          _formStatusUrl(link)
+        transactionIds,
+        _formStatusUrl(link)
       )
       return signer
     })
@@ -178,18 +178,18 @@ const createSeedUser = (org, signer, encryptedPrivateKey) => {
     },
     json: true
   })
-  .catch((e) => {
-    if (e.error && e.statusCode === 400) {
-      return Promise.reject(e.error.message)
-    } else {
-      return Promise.reject('Unable to create seed user')
-    }
-  })
-  .then((result) => {
-    if (result.status === 'ok') {
-      return {org, signer}
-    }
-  })
+    .catch((e) => {
+      if (e.error && e.statusCode === 400) {
+        return Promise.reject(e.error.message)
+      } else {
+        return Promise.reject('Unable to create seed user')
+      }
+    })
+    .then((result) => {
+      if (result.status === 'ok') {
+        return { org, signer }
+      }
+    })
 }
 
 const createSchemas = (org, signer) => {
@@ -230,7 +230,7 @@ const createSigner = (password) => {
 
   let encryptedPrivateKey = sjcl.encrypt(password, privateKey.asHex())
 
-  return Promise.resolve({signer, encryptedPrivateKey})
+  return Promise.resolve({ signer, encryptedPrivateKey })
 }
 
 const createOrganizationTransaction = (org, signer) => {
@@ -243,7 +243,7 @@ const createOrganizationTransaction = (org, signer) => {
     name: org.org_name,
     address: org.org_address,
     metadata: [
-      {...org.metadata}
+      { ...org.metadata }
     ]
   })
 
@@ -258,7 +258,7 @@ const createOrganizationTransaction = (org, signer) => {
   return createTxn({
     payloadBytes,
     inputs: [organizationAddress, agentAddress],
-    outputs: [organizationAddress, agentAddress],
+    outputs: [organizationAddress, agentAddress]
   }, signer, 'pike')
 }
 
@@ -301,29 +301,29 @@ const _formStatusUrl = (url) => {
 }
 
 const _waitForCommit = (transactionIds, statusUrl) =>
-    request({
-        url: `${_formStatusUrl(statusUrl)}&wait=60`,
-        method: 'GET'
+  request({
+    url: `${_formStatusUrl(statusUrl)}&wait=60`,
+    method: 'GET'
+  })
+    .catch((e) => Promise.reject(e.message))
+    .then((result) => {
+      let batchResult = JSON.parse(result).data[0]
+      if (batchResult.status === 'COMMITTED') {
+        console.log('Seed data batch committed')
+      } else if (batchResult.status === 'INVALID') {
+        let transactionResult = batchResult.invalid_transactions
+          .find((txn) => transactionIds.includes(txn.id))
+        if (transactionResult) {
+          console.error(`Error seeding data: ${transactionResult.message}`)
+          return Promise.reject()
+        } else {
+          console.error('Invalid Transaction')
+          return Promise.reject()
+        }
+      } else {
+        return _waitForCommit(transactionIds, statusUrl)
+      }
     })
-        .catch((e) => Promise.reject(e.message))
-        .then((result) => {
-            let batchResult = JSON.parse(result).data[0]
-            if (batchResult.status === 'COMMITTED') {
-                console.log('Seed data batch committed')
-            } else if (batchResult.status === 'INVALID') {
-                let transactionResult = batchResult.invalid_transactions
-                  .find((txn) => transactionIds.includes(txn.id))
-                if (transactionResult) {
-                  console.error(`Error seeding data: ${transactionResult.message}`)
-                  return Promise.reject()
-                } else {
-                  console.error('Invalid Transaction')
-                  return Promise.reject()
-                }
-            } else {
-                return _waitForCommit(transactionIds, statusUrl)
-            }
-        })
 
 module.exports = {
   awaitServerReady,
