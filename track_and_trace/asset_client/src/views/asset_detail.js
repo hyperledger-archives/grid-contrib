@@ -576,7 +576,9 @@ const _loadData = (recordId, state) => {
     })
     .then(() => {
       propertyNames()
-        .then((res) => state.properties = res)
+        .then((res) => {
+          state.properties = res
+        })
     })
 }
 
