@@ -29,7 +29,7 @@ const AUTH_KEY = 'authorization'
 const CRYPTO_CONTEXT = createContext('secp256k1')
 const CRYPTO_FACTORY = new CryptoFactory(CRYPTO_CONTEXT)
 
-let _authStore_cachedSigner = null
+let _authStoreCachedSigner = null
 
 const _localStoreSave = (key, value) => {
     localStorage.setItem(`${AuthService.namespace}/${key}`, value)
@@ -80,7 +80,7 @@ const AuthService = {
 
     setUserData: (user, password) => {
         // invalidate cache
-        _authStore_cachedSigner = null
+        _authStoreCachedSigner = null
 
         let storedUser = pluck(user, 'publicKey', 'email', 'encryptedPrivateKey')
         _localStoreSave(STORE_USER, JSON.stringify(storedUser))
@@ -130,14 +130,14 @@ const AuthService = {
     }),
 
     getSigner: () => {
-        if (_authStore_cachedSigner) {
-            return Promise.resolve(_authStore_cachedSigner)
+        if (_authStoreCachedSigner) {
+            return Promise.resolve(_authStoreCachedSigner)
         }
 
         let sessionStoredKey = sessionStorage.getItem(`${AuthService.namespace}/${STORE_PRIVATE_KEY}`)
         if (sessionStoredKey) {
             let signer = CRYPTO_FACTORY.newSigner(Secp256k1PrivateKey.fromHex(sessionStoredKey))
-            _authStore_cachedSigner = signer
+            _authStoreCachedSigner = signer
             return Promise.resolve(signer)
         }
 
@@ -147,7 +147,7 @@ const AuthService = {
                 let decryptedKey = sjcl.decrypt(password, user.encryptedPrivateKey)
                 _sessionStoreSave(STORE_PRIVATE_KEY, decryptedKey)
                 let signer = CRYPTO_FACTORY.newSigner(Secp256k1PrivateKey.fromHex(decryptedKey))
-                _authStore_cachedSigner = signer
+                _authStoreCachedSigner = signer
                 return Promise.resolve(signer)
             })
     },
@@ -163,7 +163,7 @@ const AuthService = {
         let privateKey = CRYPTO_CONTEXT.newRandomPrivateKey()
         let signer = CRYPTO_FACTORY.newSigner(privateKey)
 
-        _authStore_cachedSigner = signer
+        _authStoreCachedSigner = signer
         _sessionStoreSave(STORE_PRIVATE_KEY, privateKey.asHex())
 
         let encryptedPrivateKey = sjcl.encrypt(password, privateKey.asHex())
@@ -172,7 +172,7 @@ const AuthService = {
     },
 
     signOut: () => {
-        _authStore_cachedSigner = null
+        _authStoreCachedSigner = null
 
         _localStoreRemove(STORE_USER)
         _localStoreRemove(AUTH_KEY)
