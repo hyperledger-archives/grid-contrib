@@ -81,10 +81,6 @@ const AgentList = {
 
 const _controlButtons = (vnode, publicKey) => {
   if (publicKey) {
-    (f) => {
-      vnode.state.filteredAgents = vnode.state.agents.filter(f)
-    }
-
     return [
       m('.col-sm-8',
         m(FilterGroup, {

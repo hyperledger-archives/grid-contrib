@@ -57,7 +57,7 @@ const GetStarted = {
 
   submit: (e) => {
     e.preventDefault()
-    GetStarted.submitting = true,
+    GetStarted.submitting = true
     authService.createUser(GetStarted, (signer) => organizationService.createOrganization(GetStarted.org_id, GetStarted.org_name, GetStarted.org_address, signer))
       .then(() => {
         GetStarted.clear()
@@ -71,7 +71,7 @@ const GetStarted = {
   },
 
   clear: () => {
-    GetStarted.submitting = false,
+    GetStarted.submitting = false
     GetStarted.error = null
 
     GetStarted.org_id = ''
