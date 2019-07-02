@@ -44,6 +44,18 @@ const field = (onValue, attrs = null) => {
   return m('input.form-control.mb-1', _.assign(defaults, attrs))
 }
 
+const inputField = (name, label, value, oninput, type = 'text') =>
+  m('.form-group', [
+    m(`label[for=${name}]`, label),
+    m('input.form-control', {
+      oninput: m.withAttr('value', oninput),
+      value,
+      type,
+      name,
+    }),
+  ])
+
+
 /**
  * Returns a labeled input field which passes its value to a callback
  */
@@ -109,13 +121,8 @@ const MultiSelect = {
         m(`button.btn.btn-${color}.btn-block.dropdown-toggle.text-left`,
           {
             'data-toggle': 'dropdown',
-            onclick: (e) => {
-              e.preventDefault()
-              vnode.state.show = !vnode.state.show
-            },
-            onblur: e => { vnode.state.show = false }
           }, vnode.attrs.label),
-        m('.dropdown-menu.w-100', {className: vnode.state.show ? 'show' : ''},
+        m('.dropdown-menu.w-100',
           m("a.dropdown-item[href='#']", {
             onclick: (e) => {
               e.preventDefault()
@@ -153,6 +160,7 @@ module.exports = {
   group,
   field,
   input,
+  inputField,
   textInput,
   passwordInput,
   numberInput,

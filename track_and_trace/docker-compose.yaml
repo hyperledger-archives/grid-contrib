@@ -54,6 +54,7 @@ services:
           cd -
         fi;
         cd asset_client/ && npm run seed-schema && cd - &&
+        cd fish_client/ && npm run seed-schema && cd - &&
         tail -f /dev/null
       "
 
@@ -117,6 +118,8 @@ services:
       - '8022:80'
     depends_on:
       - server
+      - rest-api
+      - gridd
 
   rethink:
     image: rethinkdb

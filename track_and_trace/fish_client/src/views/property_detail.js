@@ -20,12 +20,13 @@ const m = require('mithril')
 const _ = require('lodash')
 
 const api = require('../services/api')
-const payloads = require('../services/payloads')
+const records = require('../services/records')
+const auth = require('../services/auth')
 const parsing = require('../services/parsing')
-const transactions = require('../services/transactions')
 const layout = require('../components/layout')
 const { LineGraphWidget, MapWidget } = require('../components/data')
 const { Table, PagingButtons } = require('../components/tables')
+const { PropertyDefinition } = require('../protobuf')
 
 const PAGE_SIZE = 50
 
@@ -34,20 +35,21 @@ const withIntVal = fn => m.withAttr('value', v => fn(parsing.toInt(v)))
 const typedWidget = state => {
   const property = _.get(state, 'property', {})
 
-  if (property.dataType === 'LOCATION') {
+  if (property.data_type === 'LatLong') {
     return m(MapWidget, {
       coordinates: property.updates.map(update => update.value)
     })
   }
 
-  if (property.dataType === 'NUMBER') {
+  if (property.data_type === 'Number') {
     return m(LineGraphWidget, { updates: property.updates })
   }
 
   if (property.name === 'tilt') {
     return m(LineGraphWidget, {
       updates: property.updates.map(update => {
-        const amplitude = Math.sqrt(update.value.x ** 2 + update.value.y ** 2)
+        let val = JSON.parse(update.value)
+        const amplitude = Math.sqrt(val.x ** 2 + val.y ** 2)
         return _.assign({}, update, {value: amplitude.toFixed(3)})
       })
     })
@@ -56,9 +58,10 @@ const typedWidget = state => {
   if (property.name === 'shock') {
     return m(LineGraphWidget, {
       updates: property.updates.map(update => {
-        const degree = update.value.duration === 0
+        let shockData = JSON.parse(update.value)
+        const degree = shockData.duration === 0
           ? 0
-          : update.value.accel / update.value.duration
+          : shockData.accel / shockData.duration
         return _.assign({}, update, {value: degree.toFixed(3)})
       })
     })
@@ -69,44 +72,38 @@ const typedWidget = state => {
 
 const updateSubmitter = state => e => {
   e.preventDefault()
-  const { name, dataType, recordId } = state.property
+  auth.getSigner()
+  .then((signer) => {
+    const { name, data_type, record_id } = state.property
 
-  let value = null
-  if (state.update) {
-    value = state.update
-  } else if (name === 'tilt' || name === 'shock') {
-    value = JSON.stringify(state.tmp)
-  } else {
-    value = state.tmp
-  }
+    let value = null
+    if (state.update) {
+      value = state.update
+    } else {
+      value = state.tmp
+    }
 
-  const update = { name }
-  update.dataType = payloads.updateProperties.enum[dataType]
-  update[`${dataType.toLowerCase()}Value`] = value
+    if (name === 'tilt') {
+      value = JSON.stringify(value)
+    }
 
-  const payload = payloads.updateProperties({
-    recordId,
-    properties: [update]
+    const update = { name }
+    update.dataType = PropertyDefinition.DataType[_.snakeCase(data_type).toUpperCase()]
+    update[`${_.camelCase(data_type)}Value`] = value
+    return Promise.resolve(records.updateProperties(
+      record_id,
+      [update],
+      signer
+    ))
   })
-
-  transactions.submit(payload, true)
-    .then(() => api.get(`records/${recordId}/${name}`))
-    .then(property => {
-      _.each(e.target.elements, el => { el.value = null })
-      state.update = null
-      state.tmp = {}
-      property.updates.forEach(update => {
-        update.value = parsing.floatifyValue(update.value)
-      })
-      state.property = property
-    })
 }
+
 
 // Produces custom input fields for location, tilt, and shock
 const typedInput = state => {
-  const { dataType, name } = state.property
+  const { name } = state.property
 
-  if (dataType === 'LOCATION') {
+  if (state.property.data_type === 'LatLong') {
     return [
       m('.col.md-4.mr-1',
         m('input.form-control', {
@@ -126,27 +123,12 @@ const typedInput = state => {
       m('.col.md-4.mr-1',
         m('input.form-control', {
           placeholder: 'Enter X...',
-          oninput: withIntVal(value => { state.tmp.x = value })
+          oninput: withIntVal(value => { state.tmp.x = value})
         })),
       m('.col.md-4',
         m('input.form-control', {
           placeholder: 'Enter Y...',
           oninput: withIntVal(value => { state.tmp.y = value })
-        }))
-    ]
-  }
-
-  if (name === 'shock') {
-    return [
-      m('.col.md-4.mr-1',
-        m('input.form-control', {
-          placeholder: 'Enter Acceleration...',
-          oninput: withIntVal(value => { state.tmp.accel = value })
-        })),
-      m('.col.md-4',
-        m('input.form-control', {
-          placeholder: 'Enter Duration...',
-          oninput: withIntVal(value => { state.tmp.duration = value })
         }))
     ]
   }
@@ -185,18 +167,20 @@ const PropertyDetailPage = {
   oninit (vnode) {
     vnode.state.currentPage = 0
     vnode.state.tmp = {}
-
     const refresh = () => {
-      api.get(`records/${vnode.attrs.recordId}/${vnode.attrs.name}`)
-        .then(property => {
-          property.updates.forEach(update => {
-            update.value = parsing.floatifyValue(update.value)
-          })
-          vnode.state.property = property
-        })
+      records.fetchRecord(vnode.attrs.recordId)
+        .then(res => {
+          if (res.properties) {
+            let property = res.properties.find((prop) => prop.name === vnode.attrs.name)
+            if (property) {
+              vnode.state.property = property
+            } else {
+              vnode.state.property = null
+            }
+          }}
+        )
         .then(() => { vnode.state.refreshId = setTimeout(refresh, 2000) })
     }
-
     refresh()
   },
 
@@ -215,6 +199,16 @@ const PropertyDetailPage = {
     const page = updates.slice(vnode.state.currentPage * PAGE_SIZE,
                                (vnode.state.currentPage + 1) * PAGE_SIZE)
 
+    const timestampAcc = []
+    const filteredPage = page.filter((update) => {
+      if (!timestampAcc.includes(update.timestamp)) {
+        timestampAcc.push(update.timestamp)
+        return true
+      } else {
+        return false
+      }
+    })
+
     return [
       layout.title(`${name} of ${record}`),
       typedWidget(vnode.state),
@@ -230,12 +224,12 @@ const PropertyDetailPage = {
         ]),
         m(Table, {
           headers: ['Value', 'Reporter', 'Time'],
-          rows: page.map(update => {
+          rows: filteredPage.map(update => {
             return [
               parsing.stringifyValue(update.value,
-                                     vnode.state.property.dataType,
+                                     vnode.state.property.data_type,
                                      vnode.state.property.name),
-              update.reporter.name,
+              _.truncate(update.reporter.public_key, {length: 24}),
               parsing.formatTimestamp(update.timestamp)
             ]
           }),

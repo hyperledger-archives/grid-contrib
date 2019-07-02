@@ -21,8 +21,14 @@ const sortBy = require('lodash/sortBy')
 const truncate = require('lodash/truncate')
 const {Table, FilterGroup, PagingButtons} = require('../components/tables.js')
 const api = require('../services/api')
+const agents = require('../services/agents')
 
 const PAGE_SIZE = 50
+
+const chipTray = (chips) => {
+  return m('.chip-tray',
+    typeof chips === 'object' ? chips.map((chip) => m('.chip', chip)) : m('span', chips))
+}
 
 const AgentList = {
   oninit (vnode) {
@@ -31,11 +37,12 @@ const AgentList = {
     vnode.state.currentPage = 0
 
     const refresh = () => {
-      api.get('agents').then((agents) => {
-        vnode.state.agents = sortBy(agents, 'name')
-        vnode.state.filteredAgents = vnode.state.agents
-      })
-        .then(() => { vnode.state.refreshId = setTimeout(refresh, 2000) })
+      agents.getAgents()
+        .then((agents) => {
+          vnode.state.agents = sortBy(agents, 'org_id')
+          vnode.state.filteredAgents = vnode.state.agents
+        })
+        .then(() => { vnode.state.refreshId = setTimeout(refresh, 10000) })
     }
 
     refresh()
@@ -52,22 +59,18 @@ const AgentList = {
         m('.row.btn-row.mb-2', _controlButtons(vnode, publicKey)),
         m(Table, {
           headers: [
-            'Name',
             'Key',
-            'Owns',
-            'Custodian',
-            'Reports'
+            'Organization',
+            'Roles'
           ],
           rows: vnode.state.filteredAgents.slice(
               vnode.state.currentPage * PAGE_SIZE,
               (vnode.state.currentPage + 1) * PAGE_SIZE)
             .map((agent) => [
-              m(`a[href=/agents/${agent.key}]`, { oncreate: m.route.link },
-                truncate(agent.name, { length: 32 })),
-              truncate(agent.key, { length: 32 }),
-              agent.owns.length,
-              agent.custodian.length,
-              agent.reports.length
+              m(`a[href=/agents/${agent.public_key}]`, { oncreate: m.route.link },
+                truncate(agent.public_key, { length: 32 })),
+                agent.org_id,
+                chipTray(agent.roles)
             ]),
           noRowsText: 'No agents found'
         })
@@ -88,9 +91,6 @@ const _controlButtons = (vnode, publicKey) => {
           ariaLabel: 'Filter Based on Ownership',
           filters: {
             'All': () => { vnode.state.filteredAgents = vnode.state.agents },
-            'Owners': () => filterAgents(agent => agent.owns.length > 0),
-            'Custodians': () => filterAgents(agent => agent.custodian.length > 0),
-            'Reporters': () => filterAgents(agent => agent.reports.length > 0)
           },
           initialFilter: 'All'
         })),

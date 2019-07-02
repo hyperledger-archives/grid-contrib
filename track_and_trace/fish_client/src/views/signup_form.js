@@ -23,84 +23,111 @@ const forms = require('../components/forms')
 const api = require('../services/api')
 const transactions = require('../services/transactions')
 const payloads = require('../services/payloads')
+const PIKE_FAMILY_NAME = 'pike'
 
-const passwordCard = state => {
-  const setter = forms.stateSetter(state)
-  const validator = forms.validator(
-    () => state.password === state.confirm,
-    'Passwords do not match',
-    'confirm'
-  )
-  const passwordField = (id, placeholder) => {
-    return forms.field(
-      // Run both state setting and validation on value changes
-      _.flow(setter(id), validator),
-      {
-        id,
-        placeholder,
-        type: 'password',
-        class: 'border-warning'
+const { inputField } = require('../components/forms')
+const authService = require('../services/auth')
+const agentService = require('../services/agents')
+
+const AgentSignUp = {
+  submitting: false,
+  error: null,
+
+  username: '',
+  password: '',
+  passwordConfirm: '',
+  name: '',
+
+  setUsername: (value) => {
+    AgentSignUp.username = value
+  },
+
+  setPassword: (value) => {
+    AgentSignUp.password = value
+  },
+
+  setPasswordConfirm: (value) => {
+    AgentSignUp.passwordConfirm = value
+  },
+
+   setName: (value) => {
+     AgentSignUp.name = value
+  },
+
+  setOrganization: (value) => {
+      AgentSignUp.organization = (value === '' ? '00000000000000000' : value)
+    },
+
+    submit: () => {
+      AgentSignUp.submitting = true,
+      authService.createUser(AgentSignUp, (signer) => agentService.createAgent(AgentSignUp.name, AgentSignUp.organization, signer))
+        .then(() => {
+          AgentSignUp.clear()
+          m.route.set('/')
+        })
+        .catch((e) => {
+          console.error(e)
+          AgentSignUp.submitting = false
+          AgentSignUp.error = e
+        })
+    },
+
+    clear: () => {
+      AgentSignUp.submitting = false,
+      AgentSignUp.error = null
+
+      AgentSignUp.username = ''
+      AgentSignUp.password = ''
+      AgentSignUp.passwordConfirm = ''
+      AgentSignUp.name = ''
+      AgentSignUp.organization = ''
+    },
+
+    invalid: () => {
+      if (!AgentSignUp.username ||
+          AgentSignUp.password !== AgentSignUp.passwordConfirm ||
+          !AgentSignUp.name) {
+            return true
       }
-    )
-  }
 
-  return forms.group('Password', [
-    m('.card.text-center.border-warning',
-      m('.card-header.text-white.bg-warning', m('em', m('strong', 'WARNING!'))),
-      m('.card-body.text-warning.bg-light',
-        m('p.card-text',
-          'This password will be used as a secret key to encrypt important ',
-          'account information. Although it can be changed later, ',
-          m('em',
-            'if lost or forgotten it will be ',
-            m('strong', 'impossible'),
-            ' to recover your account.')),
-        m('p.card-text', 'Keep it secure.'),
-        passwordField('password', 'Enter password...'),
-        passwordField('confirm', 'Confirm password...')))
-  ])
-}
-
-const userSubmitter = state => e => {
-  e.preventDefault()
-
-  const keys = transactions.makePrivateKey(state.password)
-  const user = _.assign(keys, _.pick(state, 'username', 'email'))
-  user.password = api.hashPassword(state.password)
-  const agent = payloads.createAgent(_.pick(state, 'name'))
-
-  transactions.submit(agent, true)
-    .then(() => api.post('users', user))
-    .then(res => api.setAuth(res.authorization))
-    .then(() => m.route.set('/'))
+      return false
+    }
 }
 
 /**
- * The Form for authorizing an existing user.
+ * Agent Sign Up Form
  */
-const SignupForm = {
-  view (vnode) {
-    const setter = forms.stateSetter(vnode.state)
+ const AgentSignupForm = {
+   oninit() {
+     AgentSignUp.clear()
+   },
+   view() {
+     return [
+       m('.signup-form'),
+         m('form', [
+             AgentSignUp.error ? m('p.text-danger', AgentSignUp.error) : null,
+             m('legend', 'Create Agent'),
+             inputField('username', 'Email', AgentSignUp.username, AgentSignUp.setUsername),
+             inputField('password', 'Password', AgentSignUp.password, AgentSignUp.setPassword, 'password'),
+             inputField('passwordConfirm', 'Confirm Password', AgentSignUp.passwordConfirm, AgentSignUp.setPasswordConfirm, 'password'),
+             inputField('name', 'Name', AgentSignUp.name, AgentSignUp.setName),
+             inputField('organization', 'Organization', AgentSignUp.organization, AgentSignUp.setOrganization),
 
-    return m('.signup-form', [
-      m('form', { onsubmit: userSubmitter(vnode.state) },
-      m('legend', 'Create Agent'),
-      forms.textInput(setter('name'), 'Name'),
-      forms.emailInput(setter('email'), 'Email'),
-      forms.textInput(setter('username'), 'Username'),
-      passwordCard(vnode.state),
-      m('.container.text-center',
-        'Or you can ',
-        m('a[href="/login"]',
-          { oncreate: m.route.link },
-          'login an existing Agent')),
-      m('.form-group',
-        m('.row.justify-content-end.align-items-end',
-          m('col-2',
-            m('button.btn.btn-primary',
-              'Create Agent')))))
-    ])
+             m('.container.text-center',
+               m('a[href="/login"]',
+                 { oncreate: m.route.link },
+                 'login an existing Agent')),
+             m('.form-group',
+               m('.row.justify-content-end.align-items-end',
+                 m('col-2',
+                   m('button.btn.btn-primary',
+                     {
+                       onclick: AgentSignUp.submit,
+                       disabled: AgentSignUp.submitting || AgentSignUp.invalid(),
+                     }, 'Create Agent'))))
+         ])
+     ]
   }
 }
 
-module.exports = SignupForm
+module.exports = AgentSignupForm

@@ -54,8 +54,8 @@ const LineGraphWidget = {
   parseUpdates (updates) {
     return updates.map(d => ({
       t: d.timestamp * 1000,
-      y: d.value,
-      reporter: d.reporter.name
+      y: d.value / 1000000,
+      reporter: _.truncate(d.reporter.public_key, {length: 16})
     }))
   },
 
@@ -68,7 +68,7 @@ const LineGraphWidget = {
         datasets: [{
           data: this.parseUpdates(vnode.attrs.updates),
           fill: false,
-          pointStyle: 'triangle',
+          pointStyle: 'circle',
           pointRadius: 8,
           borderColor: '#ff0000',
           lineTension: 0
@@ -182,10 +182,15 @@ const MapWidget = {
   },
 
   oncreate (vnode) {
-    let coordinates = vnode.attrs.coordinates
+    MapWidget.line.setCoordinates([])
+    MapWidget.markers = []
+
+    let coordinates = vnode.attrs.coordinates.map((coord) => {
+      return {latitude: coord.latitude / 1000000, longitude: coord.longitude / 1000000}
+    })
 
     if (coordinates.length > 0) {
-      MapWidget.createMap(coordinates)
+      MapWidget.createMap(coordinates.reverse())
     }
   },
 
@@ -196,11 +201,17 @@ const MapWidget = {
   },
 
   onupdate (vnode) {
-    const currentLocation = vnode.attrs.coordinates[0]
+    let coordinates = vnode.attrs.coordinates.map((coord) => {
+      return {
+        latitude: coord.latitude / 1000000,
+        longitude: coord.longitude / 1000000
+      }
+    }).reverse()
+    const currentLocation = coordinates[0]
 
     // initialize map if no previous locations
     if (vnode.attrs.coordinates.length === 1) {
-      MapWidget.createMap(vnode.attrs.coordinates)
+      MapWidget.createMap(coordinates)
     } else {
       // Center view on new location
       MapWidget.map.getView()

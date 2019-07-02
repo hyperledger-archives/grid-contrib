@@ -21,13 +21,16 @@ const moment = require('moment')
 const truncate = require('lodash/truncate')
 
 const {MultiSelect} = require('../components/forms')
-const payloads = require('../services/payloads')
+const { Proposal, PropertyDefinition, AnswerProposalAction } = require('../protobuf')
 const parsing = require('../services/parsing')
 const transactions = require('../services/transactions')
 const api = require('../services/api')
+const auth = require('../services/auth')
+const records = require('../services/records')
+const agents = require('../services/agents')
 const {
   getPropertyValue,
-  getLatestPropertyUpdateTime,
+  getLatestUpdateTime,
   getOldestPropertyUpdateTime,
   isReporter
 } = require('../utils/records')
@@ -36,11 +39,21 @@ const {
  * Possible selection options
  */
 const authorizableProperties = [
-  ['location', 'Location'],
-  ['temperature', 'Temperature'],
-  ['tilt', 'Tilt'],
-  ['shock', 'Shock']
+  'location',
+  'temperature',
+  'tilt',
+  'shock'
 ]
+
+const propertyNames = () => {
+  return m.request({
+    url: '/grid/schema/fish',
+    method: 'GET'
+  })
+  .then(result => {
+    return result.properties.map((property) => property.name)
+  })
+}
 
 const _labelProperty = (label, value) => [
   m('dl',
@@ -61,45 +74,50 @@ const TransferDropdown = {
     let record = vnode.attrs.record
     let role = vnode.attrs.role
     let publicKey = vnode.attrs.publicKey
+    let signer = vnode.attrs.signer
+    let properties = vnode.attrs.properties
     return [
       m('.dropdown',
         m('button.btn.btn-primary.btn-block.dropdown-toggle.text-left',
           { 'data-toggle': 'dropdown' },
           vnode.children),
         m('.dropdown-menu',
+        (vnode.attrs.agents ?
           vnode.attrs.agents.map(agent => {
-            let proposal = _getProposal(record, agent.key, role)
+            let proposal = _getProposal(record, agent.public_key, role)
             return [
               m("a.dropdown-item[href='#']", {
                 onclick: (e) => {
                   e.preventDefault()
                   if (proposal && proposal.issuingAgent === publicKey) {
-                    _answerProposal(record, agent.key, ROLE_TO_ENUM[role],
-                                    payloads.answerProposal.enum.CANCEL)
+                    _answerProposal(record, agent.public_key, ROLE_TO_ENUM[role],
+                                    Proposal.Role.CANCEL, 'fish', properties, signer)
                       .then(onsuccess)
                   } else {
-                    _submitProposal(record, ROLE_TO_ENUM[role], agent.key)
+                    _submitProposal(record, ROLE_TO_ENUM[role], agent.public_key, signer, properties)
                       .then(onsuccess)
                   }
                 }
               }, m('span.text-truncate',
-                   truncate(agent.name, { length: 32 }),
-                   (proposal ? ' \u2718' : '')))
-            ]
-          })))
+                      truncate(agent.public_key, { length: 32 }),
+                      (proposal ? ' \u2718' : '')))
+                ]
+              }) :
+              null
+            )))
     ]
   }
 }
 
 const ROLE_TO_ENUM = {
-  'owner': payloads.createProposal.enum.OWNER,
-  'custodian': payloads.createProposal.enum.CUSTODIAN,
-  'reporter': payloads.createProposal.enum.REPORTER
+  'owner': Proposal.Role.OWNER,
+  'custodian': Proposal.Role.CUSTODIAN,
+  'reporter': Proposal.Role.REPORTER
 }
 
 const TransferControl = {
   view (vnode) {
-    let {record, agents, publicKey, role, label} = vnode.attrs
+    let {record, agents, publicKey, role, label, signer, properties} = vnode.attrs
     if (record.final) {
       return null
     }
@@ -112,17 +130,19 @@ const TransferControl = {
           agents,
           record,
           role,
+          signer,
+          properties,
           onsuccess
         }, `Transfer ${label}`)
       ]
-    } else if (_hasProposal(record, publicKey, role)) {
+    } else if (_hasProposal(record, publicKey, role) && _getProposal(record, publicKey, role).status === 'Open') {
       return [
         m('.d-flex.justify-content-start',
           m('button.btn.btn-primary', {
             onclick: (e) => {
               e.preventDefault()
               _answerProposal(record, publicKey, ROLE_TO_ENUM[role],
-                              payloads.answerProposal.enum.ACCEPT)
+                              AnswerProposalAction.Response.ACCEPT, 'fish', properties, signer)
 
                 .then(onsuccess)
             }
@@ -132,7 +152,7 @@ const TransferControl = {
             onclick: (e) => {
               e.preventDefault()
               _answerProposal(record, publicKey, ROLE_TO_ENUM[role],
-                              payloads.answerProposal.enum.REJECT)
+                              AnswerProposalAction.Response.REJECT, 'fish', properties, signer)
                 .then(onsuccess)
             }
           },
@@ -146,26 +166,27 @@ const TransferControl = {
 
 const _getProposal = (record, receivingAgent, role) =>
   record.proposals.find(
-    (proposal) => (proposal.role.toLowerCase() === role && proposal.receivingAgent === receivingAgent))
+    (proposal) => (proposal.role.toLowerCase() === role && proposal.receiving_agent === receivingAgent))
 
 const _hasProposal = (record, receivingAgent, role) =>
   !!_getProposal(record, receivingAgent, role)
 
 const ReporterControl = {
   view (vnode) {
-    let {record, agents, publicKey} = vnode.attrs
+    let {record, agents, publicKey, signer} = vnode.attrs
     if (record.final) {
       return null
     }
 
     let onsuccess = vnode.attrs.onsuccess || (() => null)
-    if (record.owner === publicKey) {
+    if (record.owner === publicKey && !_hasProposal(record, publicKey, 'reporter')) {
       return [
         m(AuthorizeReporter, {
           record,
           agents,
           onsubmit: ([publicKey, properties]) =>
-          _authorizeReporter(record, publicKey, properties).then(onsuccess)
+          _submitProposal(record, ROLE_TO_ENUM['reporter'], publicKey, signer, properties),
+         onsuccess
         }),
 
         // Outstanding reporters
@@ -174,12 +195,13 @@ const ReporterControl = {
         .map(([key, properties]) => {
           return [
             m('.mt-2.d-flex.justify-content-start',
-              `${_agentByKey(agents, key).name} authorized for ${properties}`,
-              m('.button.btn.btn-outline-danger.ml-auto', {
+            `${truncate(key, {length: 24})} authorized for ${properties}`,
+            '',
+            m('.button.btn.btn-outline-danger.ml-auto', {
                 onclick: (e) => {
                   e.preventDefault()
-                  _revokeAuthorization(record, key, properties)
-                    .then(onsuccess)
+                  _revokeAuthorization(record, key, properties, signer)
+                  onsuccess()
                 }
               },
               'Revoke Authorization'))
@@ -187,23 +209,23 @@ const ReporterControl = {
         }),
 
         // Pending authorizations
-        record.proposals.filter((p) => p.role === 'REPORTER' && p.issuingAgent === publicKey).map(
-          (p) =>
+         record.proposals.filter((p) => p.role === 'Reporter' && p.issuingAgent === publicKey).map(          (p) =>
             m('.mt-2.d-flex.justify-content-start',
-              `Pending proposal for ${_agentByKey(agents, p.receivingAgent).name} on ${p.properties}`,
+            `Pending proposal for ${p.receivingAgent} on ${p.properties}`,
+           '',
               m('.button.btn.btn-outline-danger.ml-auto',
                 {
                   onclick: (e) => {
                     e.preventDefault()
                     _answerProposal(record, p.receivingAgent, ROLE_TO_ENUM['reporter'],
-                                    payloads.answerProposal.enum.CANCEL)
-                      .then(onsuccess)
+                    AnswerProposalAction.Response.CANCEL, 'fish', signer)
+                      onsuccess()
                   }
                 },
                 'Rescind Proposal')))
 
       ]
-    } else if (_hasProposal(record, publicKey, 'reporter')) {
+ } else if (_hasProposal(record, publicKey, 'reporter') && _getProposal(record, publicKey, 'reporter').status === 'Open') {
       let proposal = _getProposal(record, publicKey, 'reporter')
       return [
         m('.d-flex.justify-content-start',
@@ -211,8 +233,8 @@ const ReporterControl = {
             onclick: (e) => {
               e.preventDefault()
               _answerProposal(record, publicKey, ROLE_TO_ENUM['reporter'],
-                              payloads.answerProposal.enum.ACCEPT)
-                .then(onsuccess)
+              AnswerProposalAction.Response.ACCEPT, 'fish', proposal.properties, signer)
+              onsuccess()
             }
           },
           `Accept Reporting Authorization for ${proposal.properties}`),
@@ -220,8 +242,8 @@ const ReporterControl = {
             onclick: (e) => {
               e.preventDefault()
               _answerProposal(record, publicKey, ROLE_TO_ENUM['reporter'],
-                              payloads.answerProposal.enum.REJECT)
-                .then(onsuccess)
+              AnswerProposalAction.Response.REJECT, 'fish', proposal.properties, signer)
+              onsuccess()
             }
           },
           `Reject`))
@@ -245,16 +267,13 @@ const _reporters = (record) =>
     }, acc)
   }, {})
 
-const _agentByKey = (agents, key) =>
-  agents.find((agent) => agent.key === key) || { name: 'Unknown Agent' }
-
-const _agentLink = (agent) =>
-  m(`a[href=/agents/${agent.key}]`,
+const _agentLink = (key) =>
+  m(`a[href=/agents/${key}]`,
     { oncreate: m.route.link },
-    agent.name)
+     truncate(key, {length: 24}))
 
 const _propLink = (record, propName, content) =>
-  m(`a[href=/properties/${record.recordId}/${propName}]`,
+  m(`a[href=/properties/${record.record_id}/${propName}]`,
     { oncreate: m.route.link },
     content)
 
@@ -267,12 +286,15 @@ const ReportLocation = {
           e.preventDefault()
           _updateProperty(vnode.attrs.record, {
             name: 'location',
-            locationValue: {
-              latitude: parsing.toInt(vnode.state.latitude),
-              longitude: parsing.toInt(vnode.state.longitude)
+              latLongValue: {
+                latitude: parseFloat(vnode.state.latitude) * 1000000,
+                longitude: parseFloat(vnode.state.longitude) * 1000000
+              },
+              dataType: PropertyDefinition.DataType.LAT_LONG
             },
-            dataType: payloads.updateProperties.enum.LOCATION
-          }).then(() => {
+            vnode.attrs.signer
+          )
+          .then(() => {
             vnode.state.latitude = ''
             vnode.state.longitude = ''
           })
@@ -315,7 +337,7 @@ const ReportLocation = {
   }
 }
 
-const ReportValue = {
+const ReportTemperature = {
   view: (vnode) => {
     let onsuccess = vnode.attrs.onsuccess || (() => null)
     let xform = vnode.attrs.xform || ((x) => x)
@@ -324,25 +346,29 @@ const ReportValue = {
         onsubmit: (e) => {
           e.preventDefault()
           _updateProperty(vnode.attrs.record, {
-            name: vnode.attrs.name,
-            [vnode.attrs.typeField]: xform(vnode.state.value),
-            dataType: vnode.attrs.type
-          }).then(() => {
-            vnode.state.value = ''
+            name: 'temperature',
+            dataType: PropertyDefinition.DataType.NUMBER,
+             numberValue: parsing.toInt(vnode.state.temperature)
+          },
+          vnode.attrs.signer
+        ).then(() => {
+            vnode.state.temperature = ''
           })
           .then(onsuccess)
         }
       },
         m('.form-row',
           m('.form-group.col-10',
-            m('label.sr-only', { 'for': vnode.attrs.name }, vnode.attrs.label),
+            m('label.sr-only', { 'for': 'temperature' }, 'Temperature'),
             m("input.form-control[type='text']", {
-              name: vnode.attrs.name,
+              name: 'temperature',
+              type: 'number',
+              step: 'any',
               onchange: m.withAttr('value', (value) => {
-                vnode.state.value = value
+                vnode.state.temperature = value
               }),
-              value: vnode.state.value,
-              placeholder: vnode.attrs.label
+              value: vnode.state.temperature,
+              placeholder: 'Temperature'
             })),
          m('.col-2',
            m('button.btn.btn-primary', 'Update'))))
@@ -363,8 +389,8 @@ const ReportTilt = {
               x: parsing.toInt(vnode.state.x),
               y: parsing.toInt(vnode.state.y)
             }),
-            dataType: payloads.updateProperties.enum.STRING
-          })
+            dataType: PropertyDefinition.DataType.STRING
+          }, vnode.attrs.signer)
           .then(() => {
             vnode.state.x = null
             vnode.state.y = null
@@ -410,8 +436,8 @@ const ReportShock = {
               accel: parsing.toInt(vnode.state.accel),
               duration: parsing.toInt(vnode.state.duration)
             }),
-            dataType: payloads.updateProperties.enum.STRING
-          })
+            dataType: PropertyDefinition.DataType.STRING
+          }, vnode.attrs.signer)
           .then(() => {
             vnode.state.accel = null
             vnode.state.duration = null
@@ -448,7 +474,7 @@ const ReportShock = {
 
 const AuthorizeReporter = {
   oninit (vnode) {
-    vnode.state.properties = []
+    vnode.state.authorizedProperties = []
   },
 
   view (vnode) {
@@ -458,16 +484,16 @@ const AuthorizeReporter = {
         m('.col-6',
           m('input.form-control', {
             type: 'text',
-            placeholder: 'Add reporter by name or public key...',
+            placeholder: 'Add reporter by public key...',
             value: vnode.state.reporter,
             oninput: m.withAttr('value', (value) => {
               // clear any previously matched values
               vnode.state.reporterKey = null
               vnode.state.reporter = value
               let reporter = vnode.attrs.agents.find(
-                (agent) => agent.name === value || agent.key === value)
+                (agent) => agent.public_key === value)
               if (reporter) {
-                vnode.state.reporterKey = reporter.key
+                vnode.state.reporterKey = reporter.public_key
               }
             })
           })),
@@ -476,23 +502,24 @@ const AuthorizeReporter = {
           m(MultiSelect, {
             label: 'Select Fields',
             color: 'primary',
-            options: authorizableProperties,
-            selected: vnode.state.properties,
+            options: authorizableProperties.map(prop => [prop, prop]),
+            selected: vnode.state.authorizedProperties,
             onchange: (selection) => {
-              vnode.state.properties = selection
+              vnode.state.authorizedProperties = selection
             }
           })),
 
         m('.col-2',
           m('button.btn.btn-primary',
             {
-              disabled: (!vnode.state.reporterKey || vnode.state.properties.length === 0),
+              disabled: (!vnode.state.reporterKey || vnode.state.authorizedProperties.length === 0),
               onclick: (e) => {
                 e.preventDefault()
-                vnode.attrs.onsubmit([vnode.state.reporterKey, vnode.state.properties])
+                vnode.attrs.onsubmit([vnode.state.reporterKey, vnode.state.authorizedProperties])
                 vnode.state.reporterKey = null
                 vnode.state.reporter = null
-                vnode.state.properties = []
+                vnode.state.authorizedProperties = []
+                vnode.attrs.onsuccess()
               }
             },
             'Authorize')))
@@ -505,7 +532,7 @@ const FishDetail = {
     _loadData(vnode.attrs.recordId, vnode.state)
     vnode.state.refreshId = setInterval(() => {
       _loadData(vnode.attrs.recordId, vnode.state)
-    }, 2000)
+    }, 5000)
   },
 
   onbeforeremove (vnode) {
@@ -521,6 +548,8 @@ const FishDetail = {
     let owner = vnode.state.owner
     let custodian = vnode.state.custodian
     let record = vnode.state.record
+    let signer = vnode.state.signer
+    let properties = vnode.state.properties
     return [
       m('.fish-detail',
         m('h1.text-center', record.recordId),
@@ -528,34 +557,38 @@ const FishDetail = {
           _labelProperty('Created',
                          _formatTimestamp(getOldestPropertyUpdateTime(record))),
           _labelProperty('Updated',
-                         _formatTimestamp(getLatestPropertyUpdateTime(record)))),
+                         _formatTimestamp(getLatestUpdateTime(record)))),
 
         _row(
-          _labelProperty('Owner', _agentLink(owner)),
+          _labelProperty('Owner', (owner && owner.public_key ? _agentLink(owner.public_key) : '')),
           m(TransferControl, {
             publicKey,
             record,
             agents: vnode.state.agents,
             role: 'owner',
             label: 'Ownership',
+            signer,
+            properties,
             onsuccess: () => _loadData(vnode.attrs.recordId, vnode.state)
           })),
 
         _row(
-          _labelProperty('Custodian', _agentLink(custodian)),
+          _labelProperty('Custodian', (custodian && custodian.public_key ? _agentLink(custodian.public_key) : '')),
           m(TransferControl, {
             publicKey,
             record,
             agents: vnode.state.agents,
             role: 'custodian',
             label: 'Custodianship',
+            signer,
+            properties,
             onsuccess: () => _loadData(vnode.attrs.recordId, vnode.state)
           })),
 
         _row(_labelProperty('Species', getPropertyValue(record, 'species'))),
 
         _row(
-          _labelProperty('Length (m)', parsing.toFloat(getPropertyValue(record, 'length', 0))),
+          _labelProperty('Length (cm)', parsing.toFloat(getPropertyValue(record, 'length', 0))),
           _labelProperty('Weight (kg)', parsing.toFloat(getPropertyValue(record, 'weight', 0)))),
 
         _row(
@@ -564,7 +597,7 @@ const FishDetail = {
             _propLink(record, 'location', _formatLocation(getPropertyValue(record, 'location')))
           ),
           (isReporter(record, 'location', publicKey) && !record.final
-           ? m(ReportLocation, { record, onsuccess: () => _loadData(record.recordId, vnode.state) })
+           ? m(ReportLocation, { record, onsuccess: () => _loadData(vnode.attrs.recordId, vnode.state), signer })
            : null)),
 
         _row(
@@ -572,17 +605,9 @@ const FishDetail = {
             'Temperature',
             _propLink(record, 'temperature', _formatTemp(getPropertyValue(record, 'temperature')))),
           (isReporter(record, 'temperature', publicKey) && !record.final
-          ? m(ReportValue,
-            {
-              name: 'temperature',
-              label: 'Temperature (C°)',
-              record,
-              typeField: 'numberValue',
-              type: payloads.updateProperties.enum.NUMBER,
-              xform: (x) => parsing.toInt(x),
-              onsuccess: () => _loadData(vnode.attrs.recordId, vnode.state)
-            })
-           : null)),
+          ? m(ReportTemperature,
+            { record, onsuccess: () => _loadData(vnode.attrs.recordId, vnode.state), signer })
+            : null)),
 
         _row(
           _labelProperty(
@@ -591,7 +616,7 @@ const FishDetail = {
           (isReporter(record, 'tilt', publicKey) && !record.final
            ? m(ReportTilt, {
              record,
-             onsuccess: () => _loadData(vnode.attrs.recordId, vnode.state)
+             onsuccess: () => _loadData(vnode.attrs.recordId, vnode.state), signer
            })
            : null)),
 
@@ -602,14 +627,15 @@ const FishDetail = {
           (isReporter(record, 'shock', publicKey) && !record.final
            ? m(ReportShock, {
              record,
-             onsuccess: () => _loadData(vnode.attrs.recordId, vnode.state)
+             onsuccess: () => _loadData(vnode.attrs.recordId, vnode.state), signer
            })
            : null)),
 
         _row(m(ReporterControl, {
           record,
           publicKey,
-          agents: vnode.state.agents,
+          agents: vnode.state.allAgents,
+          signer,
           onsuccess: () => _loadData(vnode.attrs.recordId, vnode.state)
         })),
 
@@ -619,7 +645,7 @@ const FishDetail = {
                m('button.btn.btn-danger', {
                  onclick: (e) => {
                    e.preventDefault()
-                   _finalizeRecord(record).then(() =>
+                   _finalizeRecord(record, signer).then(() =>
                      _loadData(vnode.attrs.recordId, vnode.state))
                  }
                },
@@ -633,6 +659,11 @@ const FishDetail = {
 const _formatValue = (record, propName) => {
   let prop = getPropertyValue(record, propName)
   if (prop) {
+    if (propName === 'shock') {
+      let val = JSON.parse(prop)
+      let gs = val.accel / val.duration
+      return parsing.stringifyValue(parsing.floatifyValue(gs), '***', propName)
+    }
     return parsing.stringifyValue(parsing.floatifyValue(prop), '***', propName)
   } else {
     return 'N/A'
@@ -666,88 +697,73 @@ const _formatTimestamp = (sec) => {
 
 const _loadData = (recordId, state) => {
   let publicKey = api.getPublicKey()
-  return api.get(`records/${recordId}`)
-  .then(record =>
-    Promise.all([
-      record,
-      api.get('agents')]))
-  .then(([record, agents, owner, custodian]) => {
+  return records.fetchRecord(recordId)
+  .then(record => {
     state.record = record
-    state.agents = agents.filter((agent) => agent.key !== publicKey)
-    state.owner = agents.find((agent) => agent.key === record.owner)
-    state.custodian = agents.find((agent) => agent.key === record.custodian)
+  })
+  .then(() => {
+    agents.getAgents()
+      .then((agents) => {
+        state.allAgents = agents
+        state.agents = agents.filter((agent) => agent.public_key !== publicKey)
+        state.owner = agents.filter((agent) => agent.public_key === state.record.owner)[0]
+        state.custodian = agents.filter((agent) => agent.public_key === state.record.custodian)[0]
+      })
+  })
+  .then(() => {
+    auth.getSigner()
+      .then((signer) => {
+        state.signer = signer
+      })
+  })
+  .then(()=> {
+    propertyNames()
+    .then((res) => state.properties = res)
   })
 }
 
-const _submitProposal = (record, role, publicKey) => {
-  let transferPayload = payloads.createProposal({
-    recordId: record.recordId,
-    receivingAgent: publicKey,
-    role: role
-  })
-
-  return transactions.submit([transferPayload], true).then(() => {
-    console.log('Successfully submitted proposal')
-  })
-}
-
-const _answerProposal = (record, publicKey, role, response) => {
-  let answerPayload = payloads.answerProposal({
-    recordId: record.recordId,
-    receivingAgent: publicKey,
+const _submitProposal = (record, role, receivingAgent, signer, properties = authorizableProperties) => {
+  return Promise.resolve(records.createProposal(
+    record.record_id,
+    receivingAgent,
     role,
-    response
-  })
-
-  return transactions.submit([answerPayload], true).then(() => {
-    console.log('Successfully submitted answer')
-  })
+    properties,
+    "authorizing agent to modify properties",
+    signer
+  ))
 }
 
-const _updateProperty = (record, value) => {
-  let updatePayload = payloads.updateProperties({
-    recordId: record.recordId,
-    properties: [value]
-  })
-
-  return transactions.submit([updatePayload], true).then(() => {
-    console.log('Successfully submitted property update')
-  })
+const _answerProposal = (record, publicKey, role, response, schemaName, properties, signer) => {
+  return Promise.resolve(records.answerProposal(
+    response,
+    record.record_id,
+    publicKey,
+    role,
+    schemaName,
+    properties,
+    signer
+  ))
 }
 
-const _finalizeRecord = (record) => {
-  let finalizePayload = payloads.finalizeRecord({
-    recordId: record.recordId
-  })
-
-  return transactions.submit([finalizePayload], true).then(() => {
-    console.log('finalized')
-  })
+const _updateProperty = (record, value, signer) => {
+  return Promise.resolve(records.updateProperties(
+    record.record_id,
+    [value],
+    signer
+  ))
 }
 
-const _authorizeReporter = (record, reporterKey, properties) => {
-  let authroizePayload = payloads.createProposal({
-    recordId: record.recordId,
-    receivingAgent: reporterKey,
-    role: payloads.createProposal.enum.REPORTER,
-    properties: properties
-  })
-
-  return transactions.submit([authroizePayload], true).then(() => {
-    console.log('Successfully submitted proposal')
-  })
+const _finalizeRecord = (record, signer) => {
+  return Promise.resolve(records.finalizeRecord(record.record_id, signer))
 }
 
-const _revokeAuthorization = (record, reporterKey, properties) => {
-  let revokePayload = payloads.revokeReporter({
-    recordId: record.recordId,
-    reporterId: reporterKey,
-    properties
-  })
-
-  return transactions.submit([revokePayload], true).then(() => {
-    console.log('Successfully revoked reporter')
-  })
+const _revokeAuthorization = (record, reporterKey, properties, signer) => {
+  return Promise.resolve(records.revokeReporter(
+    record.record_id,
+    reporterKey,
+    properties,
+    signer
+  ))
 }
 
 module.exports = FishDetail

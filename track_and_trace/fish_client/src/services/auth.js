@@ -47,11 +47,17 @@ const _sessionStoreSave = (key, value) => {
     sessionStorage.setItem(`${AuthService.namespace}/${key}`, value)
 }
 
+const _sessionStoreGet = (key) => {
+    sessionStorage.getItem(`${AuthService.namespace}/${key}`)
+}
+
 const _sessionStoreRemove= (key) => {
     sessionStorage.removeItem(`${AuthService.namespace}/${key}`)
 }
 
 const requestPassword = () => {
+    let password = null
+
     return modals.show(modals.BasicModal, {
         title: 'Enter Password',
         body: '',
@@ -68,7 +74,7 @@ const displaySuccessDialog = () => {
 }
 
 const AuthService = {
-    namespace: 'asset_track',
+    namespace: 'fish_net',
 
     isSignedIn: () => Boolean(_localStoreGet(STORE_USER)),
 
@@ -86,11 +92,7 @@ const AuthService = {
     updateUserData: (update) => {
         AuthService.getUserData()
             .then((user) => {
-                let currentUser = pluck(user,
-                                        'username',
-                                        'publicKey',
-                                        'email',
-                                        'encryptedPrivateKey')
+                let currentUser = pluck(user, 'username', 'publicKey', 'email', 'encryptedPrivateKey')
                 currentUser.encryptedPrivateKey = update.encryptedPrivateKey
                 _localStoreSave(STORE_USER, JSON.stringify(currentUser))
 
@@ -114,7 +116,7 @@ const AuthService = {
     }),
 
     getPrivateKey: () => new Promise((resolve, reject) => {
-        let key = sessionStorage.getItem('asset_track/privateKey')
+        let key = sessionStorage.getItem('fish_net/privateKey')
         if (!key) {
             reject('No private key available. Try logging in')
             return
@@ -132,8 +134,7 @@ const AuthService = {
             return Promise.resolve(_authStoreCachedSigner)
         }
 
-        let sessionStoredKey = sessionStorage
-                                .getItem(`${AuthService.namespace}/${STORE_PRIVATE_KEY}`)
+        let sessionStoredKey = sessionStorage.getItem(`${AuthService.namespace}/${STORE_PRIVATE_KEY}`)
         if (sessionStoredKey) {
             let signer = CRYPTO_FACTORY.newSigner(Secp256k1PrivateKey.fromHex(sessionStoredKey))
             _authStoreCachedSigner = signer
@@ -206,11 +207,11 @@ const AuthService = {
         let userUpdate = pluck(update, 'email', 'old_password', 'password', 'encryptedPrivateKey')
         let updatedEncryptedKey = sjcl.encrypt(update.password, signer._privateKey.asHex())
         userUpdate.encryptedPrivateKey = updatedEncryptedKey
-        let publicKey = update.public_key
+        let public_key = update.public_key
 
         return m.request({
             method: 'PATCH',
-            url: `api/users/${publicKey}`,
+            url: `api/users/${public_key}`,
             data: userUpdate
         })
         .catch((e) => {
@@ -231,8 +232,7 @@ const AuthService = {
     /**
      * Creates a user then submits a transaction to the blockchain
      *
-     * The function is a (Signer) => Promise, where the promise is resolved when the
-     * transaction completes
+     * The function is a (Signer) => Promise, where the promise is resolved when the transaction completes
      */
     createUser: (user, submitTransactionFn) => {
         let userCreate = pluck(user, 'password', 'email')
@@ -240,6 +240,7 @@ const AuthService = {
             .then(({signer, encryptedPrivateKey}) => {
                 userCreate.publicKey = signer.getPublicKey().asHex()
                 userCreate.encryptedPrivateKey = encryptedPrivateKey
+                userCreate.email = userCreate.email
 
                 return m.request({
                     method: 'POST',
@@ -247,13 +248,16 @@ const AuthService = {
                     data: userCreate
                 })
                 .catch((e) => {
-                    return Promise.reject(JSON.parse(e.message).error)
+                    if (e.error && e.error.status === 400) {
+                        return Promise.reject(e.error.message)
+                    } else {
+                        return Promise.reject('Unable to sign up at this time.')
+                    }
                 })
                 .then((result) => {
                     if (result.status === 'ok') {
                         api.setAuth(result.authorization)
                         return submitTransactionFn(signer)
-                            .catch((e) => Promise.reject(e))
                     } else {
                         return Promise.reject('Unable to sign up at this time.')
                     }

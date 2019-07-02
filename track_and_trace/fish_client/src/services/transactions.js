@@ -28,11 +28,19 @@ const {
 } = require('sawtooth-sdk/protobuf')
 const modals = require('../components/modals')
 const api = require('../services/api')
+const { PayloadError } = require('../utils/errors')
 
 const ENCRYPTED_KEY = 'fish_net.encryptedKey'
-const FAMILY_NAME = 'grid_track_and_trace'
-const FAMILY_VERSION = '1.0'
-const NAMESPACE = 'a43b46'
+const TNT_FAMILY = {
+  NAME: 'grid_track_and_trace',
+  VERSION: '1.0',
+  NAMESPACE: 'a43b46'
+}
+const PIKE_FAMILY = {
+  NAME: 'pike',
+  VERSION: '0.1',
+  NAMESPACE: 'cad11d'
+}
 
 const context = new secp256k1.Secp256k1Context()
 let privateKey = null
@@ -63,19 +71,42 @@ const requestPassword = () => {
 }
 
 const createTxn = payload => {
+  let value, family
+  if (_.isPlainObject(payload)) {
+    if (payload.payload !== undefined) {
+      value = payload.payload
+      family = (payload.family ? payload.family : TNT_FAMILY.NAME)
+    } else {
+      throw new PayloadError(`Payloads should be in the form { family: String, payload: Uint8Array }`)
+    }
+  }
+  else {
+    value = payload
+    family = TNT_FAMILY.NAME
+  }
+
+  let fields
+  switch(family) {
+    case PIKE_FAMILY.NAME:
+      fields = PIKE_FAMILY
+      break
+    default:
+      fields = TNT_FAMILY
+  }
+
   const header = TransactionHeader.encode({
     signerPublicKey,
-    batcherPublicKey,
-    familyName: FAMILY_NAME,
-    familyVersion: FAMILY_VERSION,
-    inputs: [NAMESPACE],
-    outputs: [NAMESPACE],
+    batcherPublicKey: signerPublicKey,
+    familyName: fields.NAME,
+    familyVersion: fields.VERSION,
+    inputs: [fields.NAMESPACE],
+    outputs: [fields.NAMESPACE],
     nonce: (Math.random() * 10 ** 18).toString(36),
-    payloadSha512: createHash('sha512').update(payload).digest('hex'),
+    payloadSha512: createHash('sha512').update(value).digest('hex'),
   }).finish()
 
   return Transaction.create({
-    payload,
+    value,
     header,
     headerSignature: context.sign(header, privateKey)
   })
@@ -174,7 +205,7 @@ const submit = (payloads, wait = false) => {
     .then(() => {
       const txns = payloads.map(payload => createTxn(payload))
       const txnList = encodeTxns(txns)
-      return api.postBinary(`transactions${wait ? '?wait' : ''}`, txnList)
+      return api.postBinary(`batches${wait ? '?wait' : ''}`, txnList, 'sawtooth')
     })
 }
 
