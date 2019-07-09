@@ -18,10 +18,10 @@
 
 const m = require('mithril')
 const truncate = require('lodash/truncate')
-const {Table, FilterGroup, PagingButtons} = require('../components/tables')
+const { Table, FilterGroup, PagingButtons } = require('../components/tables')
 const api = require('../services/api')
 const { formatTimestamp } = require('../services/parsing')
-const {getPropertyValue, getLatestUpdateTime, getOldestPropertyUpdateTime, countPropertyUpdates} = require('../utils/records')
+const { getPropertyValue, getLatestUpdateTime, getOldestPropertyUpdateTime, countPropertyUpdates } = require('../utils/records')
 
 const PAGE_SIZE = 50
 
@@ -37,13 +37,13 @@ const AssetList = {
         method: 'GET',
         url: '/grid/record'
       })
-      .then((result) => {
-        vnode.state.records = result.filter((record) => record.schema === 'asset')
-        vnode.state.records.sort((a, b) => {
-          return getLatestUpdateTime(b) - getLatestUpdateTime(a)
+        .then((result) => {
+          vnode.state.records = result.filter((record) => record.schema === 'asset')
+          vnode.state.records.sort((a, b) => {
+            return getLatestUpdateTime(b) - getLatestUpdateTime(a)
+          })
+          vnode.state.filteredRecords = vnode.state.records
         })
-        vnode.state.filteredRecords = vnode.state.records
-      })
     }
 
     refresh()
@@ -69,17 +69,17 @@ const AssetList = {
           rows: vnode.state.filteredRecords.slice(
             vnode.state.currentPage * PAGE_SIZE,
             (vnode.state.currentPage + 1) * PAGE_SIZE)
-                .map((rec) => [
-                  m(`a[href=/assets/${rec.record_id}]`, {
-                    oncreate: m.route.link
-                  }, truncate(getPropertyValue(rec, 'serialNumber'), { length: 32 })),
-                  getPropertyValue(rec, 'type'),
-                  // This is the "created" time, synthesized from properties
-                  // added on the initial create
-                  formatTimestamp(getOldestPropertyUpdateTime(rec)),
-                  formatTimestamp(getLatestUpdateTime(rec)),
-                  countPropertyUpdates(rec)
-                ]),
+            .map((rec) => [
+              m(`a[href=/assets/${rec.record_id}]`, {
+                oncreate: m.route.link
+              }, truncate(getPropertyValue(rec, 'serialNumber'), { length: 32 })),
+              getPropertyValue(rec, 'type'),
+              // This is the "created" time, synthesized from properties
+              // added on the initial create
+              formatTimestamp(getOldestPropertyUpdateTime(rec)),
+              formatTimestamp(getLatestUpdateTime(rec)),
+              countPropertyUpdates(rec)
+            ]),
           noRowsText: 'No records found'
         })
       )

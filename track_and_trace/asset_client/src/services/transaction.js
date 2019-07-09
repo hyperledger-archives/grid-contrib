@@ -15,162 +15,162 @@
 const m = require('mithril')
 const { createHash } = require('crypto')
 const { Transaction,
-        TransactionHeader,
-        Batch,
-        BatchHeader,
-        BatchList } = require('sawtooth-sdk/protobuf')
+  TransactionHeader,
+  Batch,
+  BatchHeader,
+  BatchList } = require('sawtooth-sdk/protobuf')
 
 const { SabrePayload, ExecuteContractAction } = require('../protobuf')
 
 const addressing = require('../utils/addressing')
 
 const createTransaction = (payloadInfo, signer, family, contracts) => {
-    let { payloadBytes, inputs, outputs } = payloadInfo
-    let pubkey = signer.getPublicKey().asHex()
+  let { payloadBytes, inputs, outputs } = payloadInfo
+  let pubkey = signer.getPublicKey().asHex()
 
-    switch (family) {
-        case 'pike':
-            family = addressing.pikeFamily
-            break
-        case 'tnt':
-            family = addressing.tntFamily
-            break
-        case 'schema':
-            family = addressing.gridSchemaFamily
-            break
-        default:
-            family = addressing.tntFamily
-    }
+  switch (family) {
+    case 'pike':
+      family = addressing.pikeFamily
+      break
+    case 'tnt':
+      family = addressing.tntFamily
+      break
+    case 'schema':
+      family = addressing.gridSchemaFamily
+      break
+    default:
+      family = addressing.tntFamily
+  }
 
-    if (!contracts || contracts.length === 0) {
-        contracts = [family]
-    }
+  if (!contracts || contracts.length === 0) {
+    contracts = [family]
+  }
 
-    const executeContractAction = ExecuteContractAction.create({
-        name: family.name,
-        version: family.version,
-        inputs: inputs,
-        outputs: outputs,
-        payload: payloadBytes,
-    })
+  const executeContractAction = ExecuteContractAction.create({
+    name: family.name,
+    version: family.version,
+    inputs: inputs,
+    outputs: outputs,
+    payload: payloadBytes
+  })
 
-    const sabrePayloadBytes = SabrePayload.encode({
-        action: SabrePayload.Action.EXECUTE_CONTRACT,
-        executeContract: executeContractAction,
-    }).finish()
+  const sabrePayloadBytes = SabrePayload.encode({
+    action: SabrePayload.Action.EXECUTE_CONTRACT,
+    executeContract: executeContractAction
+  }).finish()
 
-    var inputAddresses = [
-        ...addressing.computeContractRegistryAddresses(contracts),
-        ...addressing.computeContractAddresses(contracts)
-    ]
+  var inputAddresses = [
+    ...addressing.computeContractRegistryAddresses(contracts),
+    ...addressing.computeContractAddresses(contracts)
+  ]
 
-    inputs.forEach(function(input) {
-        inputAddresses.push(addressing.computeNamespaceRegistryAddress(input))
-    })
-    inputAddresses = inputAddresses.concat(inputs)
+  inputs.forEach(function (input) {
+    inputAddresses.push(addressing.computeNamespaceRegistryAddress(input))
+  })
+  inputAddresses = inputAddresses.concat(inputs)
 
-    var outputAddresses = [
-        ...addressing.computeContractRegistryAddresses(contracts),
-        ...addressing.computeContractAddresses(contracts)
-    ]
+  var outputAddresses = [
+    ...addressing.computeContractRegistryAddresses(contracts),
+    ...addressing.computeContractAddresses(contracts)
+  ]
 
-    outputs.forEach(function(output) {
-        outputAddresses.push(addressing.computeNamespaceRegistryAddress(output))
-    })
-    outputAddresses = outputAddresses.concat(outputs)
+  outputs.forEach(function (output) {
+    outputAddresses.push(addressing.computeNamespaceRegistryAddress(output))
+  })
+  outputAddresses = outputAddresses.concat(outputs)
 
-    const transactionHeaderBytes = TransactionHeader.encode({
-        familyName: addressing.sabreFamily.name,
-        familyVersion: addressing.sabreFamily.version,
-        inputs: inputAddresses,
-        outputs: outputAddresses,
-        signerPublicKey: pubkey,
-        batcherPublicKey: pubkey,
-        dependencies: [],
-        payloadSha512: createHash('sha512').update(sabrePayloadBytes).digest('hex')
-    }).finish()
+  const transactionHeaderBytes = TransactionHeader.encode({
+    familyName: addressing.sabreFamily.name,
+    familyVersion: addressing.sabreFamily.version,
+    inputs: inputAddresses,
+    outputs: outputAddresses,
+    signerPublicKey: pubkey,
+    batcherPublicKey: pubkey,
+    dependencies: [],
+    payloadSha512: createHash('sha512').update(sabrePayloadBytes).digest('hex')
+  }).finish()
 
-    let signature = signer.sign(transactionHeaderBytes)
+  let signature = signer.sign(transactionHeaderBytes)
 
-    return Transaction.create({
-        header: transactionHeaderBytes,
-        headerSignature: signature,
-        payload: sabrePayloadBytes
-    })
+  return Transaction.create({
+    header: transactionHeaderBytes,
+    headerSignature: signature,
+    payload: sabrePayloadBytes
+  })
 }
 
 const submitBatch = (transactions, signer) => {
-    let transactionIds = transactions.map((txn) => txn.headerSignature)
-    let pubkey = signer.getPublicKey().asHex()
+  let transactionIds = transactions.map((txn) => txn.headerSignature)
+  let pubkey = signer.getPublicKey().asHex()
 
-    const batchHeaderBytes = BatchHeader.encode({
-        signerPublicKey: pubkey,
-        transactionIds,
-    }).finish()
+  const batchHeaderBytes = BatchHeader.encode({
+    signerPublicKey: pubkey,
+    transactionIds
+  }).finish()
 
-    let signature = signer.sign(batchHeaderBytes)
+  let signature = signer.sign(batchHeaderBytes)
 
-    const batch = Batch.create({
-        header: batchHeaderBytes,
-        headerSignature: signature,
-        transactions
-    })
+  const batch = Batch.create({
+    header: batchHeaderBytes,
+    headerSignature: signature,
+    transactions
+  })
 
-    const batchListBytes = BatchList.encode({
-        batches: [batch]
-    }).finish()
+  const batchListBytes = BatchList.encode({
+    batches: [batch]
+  }).finish()
 
-    return m.request({
-        method: 'POST',
-        url: '/grid/batches',
-        data: batchListBytes,
-        headers: { "Content-Type": "application/octet-stream" },
-        serialize: x => x
-    })
-        .then((result) =>
-            _waitForCommit(
-                transactionIds, _formStatusUrl(result.link)
-            )
-        )
+  return m.request({
+    method: 'POST',
+    url: '/grid/batches',
+    data: batchListBytes,
+    headers: { 'Content-Type': 'application/octet-stream' },
+    serialize: x => x
+  })
+    .then((result) =>
+      _waitForCommit(
+        transactionIds, _formStatusUrl(result.link)
+      )
+    )
 }
 
 const submitTransaction = (payloadInfo, signer) => {
-    const transactions = [createTransaction(payloadInfo, signer)]
-    return submitBatch(transactions, signer)
+  const transactions = [createTransaction(payloadInfo, signer)]
+  return submitBatch(transactions, signer)
 }
 
 const _formStatusUrl = (url) => {
-    let qs = m.parseQueryString(/(id=)\w+/g.exec(url)[0])
-    let id = (qs.id ? `id=${qs.id}` : '')
-    return `/grid/batch_statuses?${id}`
+  let qs = m.parseQueryString(/(id=)\w+/g.exec(url)[0])
+  let id = (qs.id ? `id=${qs.id}` : '')
+  return `/grid/batch_statuses?${id}`
 }
 
 const _waitForCommit = (transactionIds, statusUrl) =>
-    m.request({
-        url: `${_formStatusUrl(statusUrl)}&wait=60`,
-        method: 'GET'
+  m.request({
+    url: `${_formStatusUrl(statusUrl)}&wait=60`,
+    method: 'GET'
+  })
+    .catch((e) => Promise.reject(e.message))
+    .then((result) => {
+      let batchResult = result.data[0]
+      if (batchResult.status === 'COMMITTED') {
+        return Promise.resolve(transactionIds)
+      } else if (batchResult.status === 'INVALID') {
+        let transactionResult = batchResult
+          .invalid_transactions
+          .find((txn) => transactionIds.includes(txn.id))
+        if (transactionResult) {
+          return Promise.reject(transactionResult.message)
+        } else {
+          return Promise.reject('Invalid Transaction')
+        }
+      } else {
+        return _waitForCommit(transactionIds, statusUrl)
+      }
     })
-        .catch((e) => Promise.reject(e.message))
-        .then((result) => {
-            let batchResult = result.data[0]
-            if (batchResult.status === 'COMMITTED') {
-                return Promise.resolve(transactionIds)
-            } else if (batchResult.status === 'INVALID') {
-                let transactionResult = batchResult
-                  .invalid_transactions
-                  .find((txn) => transactionIds.includes(txn.id))
-                if (transactionResult) {
-                    return Promise.reject(transactionResult.message)
-                } else {
-                    return Promise.reject('Invalid Transaction')
-                }
-            } else {
-                return _waitForCommit(transactionIds, statusUrl)
-            }
-        })
 
 module.exports = {
-    submitBatch,
-    submitTransaction,
-    createTransaction,
+  submitBatch,
+  submitTransaction,
+  createTransaction
 }

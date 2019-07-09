@@ -17,7 +17,7 @@
 
 const m = require('mithril')
 
-const {PropertyDefinition} = require('../protobuf')
+const { PropertyDefinition } = require('../protobuf')
 const auth = require('../services/auth')
 const records = require('../services/records')
 const parsing = require('../services/parsing')
@@ -42,9 +42,9 @@ const AddAssetForm = {
     })
       .then(result => {
         auth.getUserData()
-        .then(user => {
-          vnode.state.agents = result.filter(agent => agent.public_key !== user.publicKey)
-        })
+          .then(user => {
+            vnode.state.agents = result.filter(agent => agent.public_key !== user.publicKey)
+          })
       })
   },
 
@@ -95,13 +95,13 @@ const AddAssetForm = {
             m('button.btn.btn-primary',
               {
                 disabled: (
-                            !vnode.state.serialNumber ||
+                  !vnode.state.serialNumber ||
                             vnode.state.serialNumber === '' ||
                             !vnode.state.type || vnode.state.type === '' ||
                             !vnode.state.latitude || vnode.state.latitude === '' ||
                             !vnode.state.longitude || vnode.state.longitude === '' ||
-                            !vnode.state. weight || vnode.state.weight === ''
-                          )
+                            !vnode.state.weight || vnode.state.weight === ''
+                )
               },
               'Create Record')))))
     ]

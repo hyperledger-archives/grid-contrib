@@ -22,7 +22,6 @@ const _ = require('lodash')
 const api = require('../services/api')
 const agents = require('../services/agents')
 const auth = require('../services/auth')
-const transactions = require('../services/transactions')
 const layout = require('../components/layout')
 const forms = require('../components/forms')
 
@@ -56,21 +55,6 @@ const toggledInfo = (isToggled, initialView, toggledView) => {
   return m('.field-info', isToggled ? toggledView : initialView)
 }
 
-// An in-line form for updating a single field
-const infoForm = (state, key, onSubmit, opts) => {
-  return m('form.form-inline', {
-    onsubmit: () => onSubmit().then(() => { state.toggled[key] = false })
-  }, [
-    m('input.form-control-sm.mr-1', _.assign({
-      oninput: m.withAttr('value', value => { state.update[key] = value })
-    }, opts)),
-    m('button.btn.btn-secondary.btn-sm.mr-1', {
-      onclick: () => { state.toggled[key] = false }
-    }, 'Cancel'),
-    m('button.btn.btn-primary.btn-sm.mr-1', { type: 'submit' }, 'Update')
-  ])
-}
-
 const privateKeyField = state => {
   return labeledField(
     fieldHeader('Private Key',
@@ -89,11 +73,6 @@ const privateKeyField = state => {
       state.toggled.privateKey,
       bullets(64),
       state.toggled.privateKey))
-}
-
-// Pencil icon that simply toggles visibility
-const editIcon = (obj, key) => {
-  return forms.clickIcon('pencil', () => { obj[key] = !obj[key] })
 }
 
 /**

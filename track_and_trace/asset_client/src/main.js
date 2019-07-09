@@ -49,7 +49,7 @@ const Layout = {
       m('footer',
         m('.platform',
           m('span', 'Powered by'),
-          m('img', {src: '../images/hyperledger.svg'})))
+          m('img', { src: '../images/hyperledger.svg' })))
     ]
   }
 }
@@ -99,7 +99,7 @@ const resolve = (view, restricted = false) => {
     }
     return m(Layout, { navbar: loggedOutNav() }, m(view, vnode.attrs))
   }
-  
+
   return resolver
 }
 

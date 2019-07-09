@@ -24,7 +24,7 @@ const getPropertyValue = (record, propName, defaultValue = null) => {
   let prop = _getProp(record, propName)
   if (prop) {
     if (prop.updates.length > 0) {
-      return prop.updates[prop.updates.length -1].value
+      return prop.updates[prop.updates.length - 1].value
     } else if (prop.value && prop.value.value) {
       return prop.value.value
     }
@@ -48,10 +48,10 @@ const _getPropTimeByComparison = (compare) => (record) => {
   }
 
   return Object.values(record.updates.properties)
-      .reduce((acc, updates) => acc.concat(updates), [])
-      .reduce((selected, update) =>
-              compare(selected.timestamp, update.timestamp) ? update : selected)
-      .timestamp
+    .reduce((acc, updates) => acc.concat(updates), [])
+    .reduce((selected, update) =>
+      compare(selected.timestamp, update.timestamp) ? update : selected)
+    .timestamp
 }
 
 const getLatestPropertyUpdateTime =

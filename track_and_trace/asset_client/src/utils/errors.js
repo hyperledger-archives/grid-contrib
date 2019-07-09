@@ -19,7 +19,7 @@
 class PayloadError extends Error {
   constructor (message) {
     super(message)
-    this.name = "Payload Error"
+    this.name = 'Payload Error'
   }
 }
 
