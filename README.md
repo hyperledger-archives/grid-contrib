@@ -13,7 +13,7 @@ repository](https://github.com/hyperledger/grid).
 For example, the Grid Track and Trace transaction family provides a smart
 contract that tracks goods as they move through a supply chain. For more
 information, see the [Grid Track and Trace
-documentation](https://grid.hyperledger.org/docs/grid/nightly/master/family_specification.html)
+documentation](https://grid.hyperledger.org/docs/grid/nightly/master/transaction_family_specifications/grid_track_and_trace_family_specification.html)
 and the
 [grid/track_and_trace](https://github.com/hyperledger/grid-contrib/tree/master/track_and_trace)
 subdirectory in this repository.
