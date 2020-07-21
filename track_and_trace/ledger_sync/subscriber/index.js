@@ -25,7 +25,8 @@ const {
   EventFilter,
   StateChangeList,
   ClientEventsSubscribeRequest,
-  ClientEventsSubscribeResponse
+  ClientEventsSubscribeResponse,
+  PingResponse
 } = require('sawtooth-sdk/protobuf')
 
 const deltas = require('./deltas')
@@ -67,6 +68,11 @@ const handleEvent = msg => {
   if (msg.messageType === Message.MessageType.CLIENT_EVENTS) {
     const events = EventList.decode(msg.content).events
     deltas.handle(getBlock(events), getChanges(events))
+  }  else if (msg.messageType === Message.MessageType.PING_REQUEST) {
+    stream.send(
+      Message.MessageType.PING_RESPONSE,
+      PingResponse.encode({}).finish(),
+    )
   } else {
     console.warn('Received message of unknown type:', msg.messageType)
   }
