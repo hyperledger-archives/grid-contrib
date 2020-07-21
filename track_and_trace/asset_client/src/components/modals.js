@@ -30,8 +30,14 @@ const BasicModal = {
     // Set default accept/cancel values
     const acceptText = vnode.attrs.acceptText || 'Accept'
     const cancelText = vnode.attrs.cancelText || 'Cancel'
-    const acceptFn = vnode.attrs.acceptFn || _.identity
-    const cancelFn = vnode.attrs.cancelFn || _.identity
+    const acceptFn = (e) => {
+      e.preventDefault()
+      (vnode.attrs.acceptFn || _.identity)(e)
+    }
+    const cancelFn = (e) => {
+      e.preventDefault()
+      (vnode.attrs.cancelFn || _.identity)(e)
+    }
 
     return m('.modal.fade#modal', {
       tabindex: '-1',
