@@ -1,4 +1,8 @@
-# grid-contrib
+# Hyperledger Grid
+
+Hyperledger Grid [has moved](https://github.com/hyperledger/toc/issues/82) to [End of life status](https://toc.hyperledger.org/governing-documents/project-lifecycle.html#end-of-life).
+
+## grid-contrib
 
 The grid-contrib repository contains contributed software for
 [Hyperledger Grid](https://grid.hyperledger.org), a platform for building
