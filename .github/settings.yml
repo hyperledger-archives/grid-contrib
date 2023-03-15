@@ -14,13 +14,14 @@
 
 repository:
   # See https://developer.github.com/v3/repos/#edit for all available settings.
+  description: Grid has moved to end-of-life status.
   name: grid-contrib
-  homepage: https://wiki.hyperledger.org/display/grid
   private: false
   has_issues: true
   has_projects: false
   has_wiki: false
   has_downloads: false
+  archived: true
   default_branch: main
   allow_squash_merge: false
   allow_merge_commit: true
